@@ -1,22 +1,17 @@
 package com.mrcreusky.neomythology.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.client.Minecraft;
 
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
-import net.minecraft.client.gui.narration.NarratableEntry;
-import net.minecraft.client.gui.narration.NarratableEntry.NarrationPriority;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.components.Button.CreateNarration;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
@@ -27,23 +22,19 @@ public class Menu extends Screen {
 
     WidgetSprites godIconSprites[] = {
         new WidgetSprites(
-            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_zeus.png"), // Emplacement de la texture
-            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_zeus_hovered.png")  // Optionnel : texture lorsqu'on survole
+            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_thor.png"), // Emplacement de la texture
+            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_thor_hovered.png")  // Optionnel : texture lorsqu'on survole
         ),
         new WidgetSprites(
-            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_hades.png"), // Emplacement de la texture
-            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_hades_hovered.png")  // Optionnel : texture lorsqu'on survole
-        ),
-        new WidgetSprites(
-            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_poseidon.png"), // Emplacement de la texture
-            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_poseidon_hovered.png")  // Optionnel : texture lorsqu'on survole
+            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_odin.png"), // Emplacement de la texture
+            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_odin_hovered.png")  // Optionnel : texture lorsqu'on survole
         )
     };
 
     // Pour l'affichage des détails à droite
-    private String selectedGodName = "Zeus";  // Par défaut, on sélectionne Zeus
+    private String selectedGodName = "Thor";  // Par défaut, on sélectionne Zeus
     private String godDescription = "Minor Gods and God Powers";  // Description par défaut
-    private static final ResourceLocation GOD_DETAILS_ICON = ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/details_thor.png");
+    private static final ResourceLocation GOD_DETAILS_ICON = ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_thor.png");
 
     public Menu(Component title) {
         super(title);
@@ -84,40 +75,42 @@ public class Menu extends Screen {
             }).bounds(buttonWidth / 2 - 50, startY + 3 * (buttonHeight + padding), 100, 20).build());
         // Ajouter un bouton pour la sélection aléatoire
     }
- 
+    
+    
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         // Dessiner l'arrière-plan
-        renderBackground(poseStack);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
-        blit(poseStack, 0, 0, 0, 0, this.width, this.height);
+        // guiGraphics.blit(mouseX, mouseY, 0, this.width, this.height, null);
 
         // Dessiner la partie droite (informations sur le dieu sélectionné)
-        drawRightPanel(poseStack);
+        drawRightPanel(guiGraphics);
 
         // Dessiner les boutons et les composants de base
-        super.render(poseStack, mouseX, mouseY, partialTicks);
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
-    private void drawRightPanel(PoseStack poseStack) {
+    private void drawRightPanel(GuiGraphics guiGraphics) {
         // Afficher les détails du dieu sélectionné
         int infoX = this.width / 2 + 100;
         int infoY = this.height / 4;
 
         // Afficher le nom du dieu
-        drawString(poseStack, this.font, this.selectedGodName, infoX, infoY, 0xFFFFFF);
-        drawString(poseStack, this.font, this.godDescription, infoX, infoY + 20, 0xFFFFFF);
+        guiGraphics.drawString(this.font, this.selectedGodName, infoX, infoY, 0xFFFFFF);
+        guiGraphics.drawString(this.font, this.godDescription, infoX, infoY + 20, 0xFFFFFF);
 
         // Dessiner une icône (détails supplémentaires)
         RenderSystem.setShaderTexture(0, GOD_DETAILS_ICON);
-        blit(poseStack, infoX, infoY + 40, 0, 0, 64, 64, 64, 64);
+        //TextureAtlas textureAtlas = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS);
+        guiGraphics.blit(infoX, infoY + 40, 0, 64, 64, null);
     }
 
-    @Override
-    public void renderBackground(PoseStack poseStack) {
-        // Ici on pourrait ajouter une texture d'arrière-plan personnalisée
-        super.renderBackground(poseStack);
-    }
+    // @Override
+    // public void renderBackground(GuiGraphics guiGraphics) {
+    //     // Ici on pourrait ajouter une texture d'arrière-plan personnalisée
+    //     super.renderBackground(guiGraphics);
+    // }
 
     @Override
     public boolean isPauseScreen() {

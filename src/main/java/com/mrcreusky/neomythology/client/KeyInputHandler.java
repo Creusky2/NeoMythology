@@ -2,6 +2,7 @@ package com.mrcreusky.neomythology.client;
 
 import com.mrcreusky.neomythology.client.gui.Menu;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
 import net.neoforged.api.distmarker.Dist;
@@ -16,7 +17,7 @@ public class KeyInputHandler {
     public static void onKeyInput(InputEvent.Key event) {
         // Vérifie si une touche spécifique est appuyée (ici "G" par exemple)
         if (event.getKey() == GLFW.GLFW_KEY_G && event.getAction() == GLFW.GLFW_PRESS) {
-            Minecraft.getInstance().setScreen(new Menu());
+            Minecraft.getInstance().setScreen(new Menu(Component.literal("NeoMythology")));
         }
     }
 }
