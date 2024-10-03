@@ -12,19 +12,32 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.Minecraft;
 
 import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.narration.NarratableEntry.NarrationPriority;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.components.Button.CreateNarration;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 
 
 public class Menu extends Screen {
 
     private static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/gods_selection_menu.png");
 
-    // Tableau des dieux (associé aux textures de chaque dieu)
-    private static final ResourceLocation[] GOD_ICONS = {
-        ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_zeus.png"),
-        ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_hades.png"),
-        ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_poseidon.png"),
-        // Ajoute plus de dieux ici...
+    WidgetSprites godIconSprites[] = {
+        new WidgetSprites(
+            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_zeus.png"), // Emplacement de la texture
+            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_zeus_hovered.png")  // Optionnel : texture lorsqu'on survole
+        ),
+        new WidgetSprites(
+            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_hades.png"), // Emplacement de la texture
+            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_hades_hovered.png")  // Optionnel : texture lorsqu'on survole
+        ),
+        new WidgetSprites(
+            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_poseidon.png"), // Emplacement de la texture
+            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_poseidon_hovered.png")  // Optionnel : texture lorsqu'on survole
+        )
     };
 
     // Pour l'affichage des détails à droite
@@ -37,6 +50,7 @@ public class Menu extends Screen {
     }
 
     protected void init() {
+        RandomSource random = RandomSource.create();
         int buttonWidth = 64;
         int buttonHeight = 64;
         int padding = 10;
@@ -50,26 +64,27 @@ public class Menu extends Screen {
                 int y = startY + row * (buttonHeight + padding);
                 int index = row * 3 + col;
 
-                if (index < GOD_ICONS.length) {
-                    ResourceLocation godIcon = GOD_ICONS[index];
-                    this.addRenderableWidget(new ImageButton(x, y, buttonWidth, buttonHeight, 0, 0, buttonHeight, godIcon, buttonWidth, buttonHeight * 2, button -> {
+                if (index < godIconSprites.length) {
+                    WidgetSprites godIcon = godIconSprites[index];
+                    this.addRenderableWidget(new ImageButton(x, y, buttonWidth, buttonHeight, godIcon, button -> {
                         // Action lors de la sélection d'un dieu
                         this.selectedGodName = "God " + (index + 1);  // Nom temporaire, remplace par le nom réel
                         this.godDescription = "Description of God " + (index + 1);  // Description temporaire
                     }));
-                }
+                }                
             }
         }
 
+        this.addRenderableWidget(new Button.Builder(Component.literal("Random"), 
+            button -> {
+                // Action lors de la sélection aléatoire
+                int randomGod = Mth.randomBetweenInclusive(random, 0, godIconSprites.length - 1);
+                this.selectedGodName = "God " + (randomGod + 1);
+                this.godDescription = "Randomly selected God " + (randomGod + 1);
+            }).bounds(buttonWidth / 2 - 50, startY + 3 * (buttonHeight + padding), 100, 20).build());
         // Ajouter un bouton pour la sélection aléatoire
-        this.addRenderableWidget(new Button(this.width / 2 - 50, startY + 3 * (buttonHeight + padding), 100, 20, Component.literal("Random"), button -> {
-            // Action lors de la sélection aléatoire
-            int randomGod = Mth.randomBetweenInclusive(this.random, 0, GOD_ICONS.length - 1);
-            this.selectedGodName = "God " + (randomGod + 1);
-            this.godDescription = "Randomly selected God " + (randomGod + 1);
-        }));
     }
-
+ 
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         // Dessiner l'arrière-plan
