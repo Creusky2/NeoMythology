@@ -5,8 +5,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+// import net.minecraft.client.multiplayer.chat.LoggedChatMessage.System;
+// import net.minecraft.client.renderer.texture.TextureAtlas;
+// import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
@@ -16,28 +17,34 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
 
+import org.slf4j.Logger;
+import com.mojang.logging.LogUtils;
+
+
 public class Menu extends Screen {
+    private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/gods_selection_menu.png");
-
+    private static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.fromNamespaceAndPath("neomythology", "src/main/resources/assets/neomythology/textures/gui/gods_selection_menu.png");
+    // ResourceLocation.isValidPath("src/main/resources/assets/neomythology/textures/gui/gods_selection_menu.png");
+    LOGGER.info("HELLO FROM COMMON SETUP");
+    
     WidgetSprites godIconSprites[] = {
         new WidgetSprites(
-            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_thor.png"), // Emplacement de la texture
-            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_thor_hovered.png")  // Optionnel : texture lorsqu'on survole
+            ResourceLocation.fromNamespaceAndPath("neomythology", "src/main/resources/assets/neomythology/textures/gui/icon_thor.png"), // Emplacement de la texture
+            ResourceLocation.fromNamespaceAndPath("neomythology", "src/main/resources/assets/neomythology/textures/gui/icon_thor_hovered.png")  // Optionnel : texture lorsqu'on survole
         ),
         new WidgetSprites(
-            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_odin.png"), // Emplacement de la texture
-            ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_odin_hovered.png")  // Optionnel : texture lorsqu'on survole
+            ResourceLocation.fromNamespaceAndPath("neomythology", "src/main/resources/assets/neomythology/textures/gui/icon_odin.png"), // Emplacement de la texture
+            ResourceLocation.fromNamespaceAndPath("neomythology", "src/main/resources/assets/neomythology/textures/gui/icon_odin_hovered.png")  // Optionnel : texture lorsqu'on survole
         )
     };
 
     // Pour l'affichage des détails à droite
     private String selectedGodName = "Thor";  // Par défaut, on sélectionne Zeus
     private String godDescription = "Minor Gods and God Powers";  // Description par défaut
-    private static final ResourceLocation GOD_DETAILS_ICON = ResourceLocation.fromNamespaceAndPath("neomythology", "textures/gui/icon_thor.png");
-
-    public Menu(Component title) {
-        super(title);
+    private static final ResourceLocation GOD_DETAILS_ICON = ResourceLocation.fromNamespaceAndPath("neomythology", "src/main/resources/assets/neomythology/textures/gui/icon_thor.png");
+    public Menu() {
+        super(Component.literal("NeoMythology"));
     }
 
     protected void init() {
