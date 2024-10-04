@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -42,6 +43,8 @@ public class NeoMythology
 {
     // Define mod id in a common place for everything to reference
     public static final String MODID = "neomythology";
+
+    public static final String GUI_DIR = "textures/gui/";
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
     // Create a Deferred Register to hold Blocks which will all be registered under the "neomythology" namespace
@@ -136,4 +139,8 @@ public class NeoMythology
             NeoForge.EVENT_BUS.register(KeyInputHandler.class);
         }
     }
+
+    public static ResourceLocation getGuiTexture(String name) {
+		return ResourceLocation.fromNamespaceAndPath(MODID, GUI_DIR + name);
+	}
 }
