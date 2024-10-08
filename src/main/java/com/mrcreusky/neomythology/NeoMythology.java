@@ -97,6 +97,8 @@ public class NeoMythology
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+
+        modEventBus.addListener(ClientModEvents::onClientSetup);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
@@ -138,6 +140,8 @@ public class NeoMythology
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
             NeoForge.EVENT_BUS.register(KeyInputHandler.class);
+            // Register key bindings during client setup
+            KeyInputHandler.registerKeyBindings();
         }
     }
 

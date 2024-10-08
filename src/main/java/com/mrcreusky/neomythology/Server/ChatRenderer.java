@@ -52,20 +52,16 @@ public class ChatRenderer {
     public static void onServerChat(ServerChatEvent event) {
         ServerPlayer player = event.getPlayer();
         Component originalMessage = event.getMessage();
-        System.out.println(originalMessage.getSiblings().toString());
-        System.out.println(originalMessage.getContents().toString());
-        // originalMessage.getSiblings().forEach(component -> System.out.println("Sibling: " + component.getString()));
 
         System.out.println("Client chat received: " + originalMessage);
 
         if (player != null) {
-            String selectedGodName = player.getPersistentData().getCompound("PlayerPersisted").getString("SelectedGod");
+            God selectedGod = God.getFromPlayer(player);
             GodSelectionMenu.reloadGods();
-            God selectedGod = God.getGodByName(selectedGodName);
+            // String selectedGodName = player.getPersistentData().getCompound("PlayerPersisted").getString("SelectedGod");
+            // God selectedGod = God.getGodByName(selectedGodName);
             if (selectedGod != null) {
-                String civilisation = selectedGod.civilisation;
-                String colorHex = civilisationColors.getOrDefault(civilisation, "#FFFFFF"); // Blanc par défaut
-                System.out.println("Selected God: " + selectedGodName + " - Civilisation: " + civilisation + " - Color: " + colorHex);
+                String colorHex = civilisationColors.getOrDefault(selectedGod.getCivilisation(), "#FFFFFF"); // Blanc par défaut
                 int color = Integer.parseInt(colorHex.substring(1), 16);
 
                 // Appliquer la couleur au nom du joueur

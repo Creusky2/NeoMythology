@@ -10,12 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Set;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -27,7 +27,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
 import com.mrcreusky.neomythology.NeoMythology;
-import com.mrcreusky.neomythology.client.PlayerDivinity;
 import com.mrcreusky.neomythology.client.PlayerHelper;
 
 import net.minecraft.core.Holder;
@@ -82,20 +81,56 @@ public class GodSelectionMenu extends Screen {
         String icon_hovered;
         String description;
         public List<Stat> stats;
-        public String civilisation;
+        String civilisation;
 
-        public static God getGodByName(String name) {
-            for (God god : godsList) {
-                if (god.name.equals(name)) {
-                    return god;
-                }
-            }
-            return null;
+        public static God getFromPlayer(ServerPlayer player) {
+            return getGodByName(player.getPersistentData().getCompound(ServerPlayer.PERSISTED_NBT_TAG).getString("SelectedGod"));
+        }
+
+        private static God getGodByName(String name) {
+            return godsList.stream().filter(god -> god.name.equals(name)).findFirst().orElse(null);
         }
         public String getName() {
             return name;
         }
+        public String getCivilisation() {
+            return civilisation;
+        }
+
+        private void applyGodStatsToPlayer(ServerPlayer player) {
+            if (stats != null) {   
+                removeGodStatsFromPlayer(player);
+                stats.forEach(stat -> {
+                    stat.AddPermanentModifierToPlayer(player);
+                });
+            }
+        }
+
+        private void removeGodStatsFromPlayer(ServerPlayer player) {
+            stats.forEach(stat -> {
+                stat.GetModifiersFromPlayer(player).forEach(
+                    player.getAttribute(stat.getAttributeHolderFromName(stat.getName()))
+                    ::removeModifier
+                );
+            });
+        }
+
+        public void putInPlayer(ServerPlayer player) {
+			player.getPersistentData().putString("SelectedGod", name);
+		}
     
+		public void putAndApplyGodStatsToPlayer(ServerPlayer player) {
+            
+            System.out.println("Selected god: " + this.name);
+            if (this != null) {
+                applyGodStatsToPlayer(player);
+            }
+		}
+
+        public static boolean isAssignedToPlayer(ServerPlayer player) {
+			return player.getPersistentData().getCompound(ServerPlayer.PERSISTED_NBT_TAG).contains("SelectedGod");
+		}
+
         public static class Stat {
             private String name;
             private Float value;
@@ -110,15 +145,24 @@ public class GodSelectionMenu extends Screen {
             public Float getValue() {
                 return value;
             }
+
+            public Float getValuebyOperation() {
+                switch (getOperationFromName(name)) {
+                    case ADD_MULTIPLIED_TOTAL:
+                        return value * 0.1F;
+                    case ADD_MULTIPLIED_BASE:
+                        return value * 100;
+                    default:
+                        return value;
+                }
+            }
             public void setValue(Float value) {
                 this.value = value;
             }
             
             public Holder<Attribute> getAttributeHolderFromName(String name) {
-                System.out.println("TEST");
                 switch (name) {
                     case "health":
-                        System.out.println("health");
                         return Attributes.MAX_HEALTH;
                     case "speed":
                         return Attributes.MOVEMENT_SPEED;
@@ -145,17 +189,30 @@ public class GodSelectionMenu extends Screen {
                 }
             }
 
+            public Set<AttributeModifier> GetModifiersFromPlayer(ServerPlayer player){
+                AttributeInstance statAttributeInstance = player.getAttribute(getAttributeHolderFromName(name));
+                if (statAttributeInstance != null) {
+                    return statAttributeInstance.getModifiers();
+                }
+                return null;
+            }
+
             public void AddPermanentModifierToPlayer(ServerPlayer player){
                 AttributeInstance statAttributeInstance = player.getAttribute(getAttributeHolderFromName(name));
                 if (statAttributeInstance != null) {
                     statAttributeInstance.addPermanentModifier(new AttributeModifier(
                     ResourceLocation.fromNamespaceAndPath("neomythology", "god_modifier_" + name),
-                    getValue(),
+                    getValuebyOperation(),
                     getOperationFromName(name)
                     ));
                 }
             }
         }
+
+
+
+
+
              
     }
 
@@ -210,7 +267,8 @@ public class GodSelectionMenu extends Screen {
 
             // Ajouter les boutons pour chaque dieu de cette civilisation
             int godsPerRow = 3;
-            int numberOfRows = (int) Math.ceil(gods.size() / godsPerRow);
+            int numberOfRows = (int) Math.floor(gods.size() / godsPerRow);
+            System.out.println("Civilisation: " + civilisation + " - Gods: " + gods.size() + " - Rows: " + numberOfRows);
             boolean isFirstRow = true;
 
             for (int row = 0; row < numberOfRows; row++) {
@@ -257,15 +315,16 @@ public class GodSelectionMenu extends Screen {
 
                     if (player != null) {
                         // Sauvegarder les informations sur le dieu sélectionné
-                        CompoundTag tag = player.getPersistentData().getCompound(AbstractClientPlayer.PERSISTED_NBT_TAG);
+                        CompoundTag tag = player.getPersistentData().getCompound(ServerPlayer.PERSISTED_NBT_TAG);
                         tag.putString("SelectedGod", this.selectedGod.name);
+                        tag.putInt("level", 0);
                         player.save(tag);
-                        // player.setData(null, null);
-                        player.getPersistentData().put(AbstractClientPlayer.PERSISTED_NBT_TAG, tag);
+                        player.getPersistentData().put(ServerPlayer.PERSISTED_NBT_TAG, tag);
 
                         System.out.println("Persisted data: " + player.getPersistentData());
-
-                        PlayerDivinity.applyGodStatsToPlayer(this.selectedGod, player);
+                        if (selectedGod != null) {
+                            this.selectedGod.applyGodStatsToPlayer(player);
+                        }
                     }
                 }).bounds(saveButtonX, saveButtonY, 100, 20)  // Position du bouton "Save" en bas à droite
         .build());
