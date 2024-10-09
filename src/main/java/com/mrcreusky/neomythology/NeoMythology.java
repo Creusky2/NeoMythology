@@ -36,7 +36,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import com.mrcreusky.neomythology.entities.LightBeamEntity;
+// import com.mrcreusky.neomythology.entities.LightBeamEntity;
 import net.minecraft.world.entity.MobCategory;
 
 import com.mrcreusky.neomythology.client.KeyInputHandler;
@@ -75,6 +75,7 @@ public class NeoMythology
     //         .updateInterval(10)
     //         .build("light_beam")    
     // );
+    
     // Creates a new food item with the id "neomythology:example_id", nutrition 1 and saturation 2
     public static final DeferredItem<Item> EXAMPLE_ITEM = ITEMS.registerSimpleItem("example_item", new Item.Properties().food(new FoodProperties.Builder()
             .alwaysEdible().nutrition(1).saturationModifier(2f).build()));

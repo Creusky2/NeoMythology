@@ -2,7 +2,6 @@ package com.mrcreusky.neomythology.client;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.HitResult;
@@ -13,7 +12,7 @@ import com.mrcreusky.neomythology.client.gui.GodSelectionMenu;
 import com.mrcreusky.neomythology.client.gui.QuestMenu;
 import com.mrcreusky.neomythology.powers.CooldownManager;
 import com.mrcreusky.neomythology.powers.Spell;
-import com.mrcreusky.neomythology.powers.spells.LightBeamSpell;
+import com.mrcreusky.neomythology.powers.SpellManager;
 import com.mrcreusky.neomythology.utils.RayTracingHelper;
 
 import org.lwjgl.glfw.GLFW;
@@ -25,7 +24,6 @@ import net.neoforged.api.distmarker.Dist;
 @EventBusSubscriber(modid = "neomythology", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
 public class KeyInputHandler {
 
-    private static final Spell lightBeamSpell = new LightBeamSpell();
     private static final CooldownManager cooldownManager = new CooldownManager(); // Cooldown manager instance
 
     // Key mapping for opening the God Selection Menu
@@ -47,9 +45,24 @@ public class KeyInputHandler {
     public static final KeyMapping CAST_FIRST_SPELL = new KeyMapping(
             "Cast First Spell",
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_L,
+            GLFW.GLFW_KEY_N,
             "NeoMythology"
     );
+
+    public static final KeyMapping CAST_SECOND_SPELL = new KeyMapping(
+            "Cast Second Spell",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_B,
+            "NeoMythology"
+    );
+
+    public static final KeyMapping CAST_THIRD_SPELL = new KeyMapping(
+            "Cast Third Spell",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_V,
+            "NeoMythology"
+    );
+
 
     // Method for registering key bindings
     @SuppressWarnings("resource")
@@ -57,6 +70,8 @@ public class KeyInputHandler {
         Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, OPEN_GOD_SELECTION_MENU);
         Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, OPEN_QUEST_MENU);
         Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, CAST_FIRST_SPELL);
+        Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, CAST_SECOND_SPELL);
+        Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, CAST_THIRD_SPELL);
     }
 
     // Utility method to add key bindings ensuring a single unique value
@@ -89,28 +104,96 @@ public class KeyInputHandler {
                 minecraft.setScreen(new QuestMenu());
             }
         }
-                // Ouvre le menu des quêtes
-        if (CAST_FIRST_SPELL.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
 
+        // Lancer le sort lorsqu'on appuie sur la touche associée
+        if (CAST_FIRST_SPELL.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
             ServerPlayer serverPlayer = PlayerHelper.getServerPlayerByName(minecraft.getSingleplayerServer(), minecraft.player.getName().getString());
 
             if (serverPlayer != null) {
-                // Lancer le sort lorsqu'on appuie sur la touche associée
-                if (CAST_FIRST_SPELL.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
+                // Récupérer le sort à lancer (par exemple, "light_beam")
+                Spell spell = SpellManager.getSpell("light_beam");
+
+                if (spell != null) {
                     // Utiliser le ray tracing pour obtenir la position et la cible
-                    HitResult hitResult = RayTracingHelper.getPlayerTarget(serverPlayer, serverPlayer.serverLevel(), 30);
+                    HitResult hitResult = RayTracingHelper.getPlayerTarget(serverPlayer, serverPlayer.serverLevel(), spell.getRange());
 
                     // Si une cible a été trouvée
                     if (hitResult != null) {
                         Vec3 target = hitResult.getLocation();
 
                         // Vérifier si le sort peut être lancé
-                        if (lightBeamSpell.canCast(serverPlayer, cooldownManager)) {
-                            lightBeamSpell.cast(serverPlayer, serverPlayer.serverLevel(), target, cooldownManager);
+                        if (spell.canCast(serverPlayer, cooldownManager)) {
+                            spell.cast(serverPlayer, serverPlayer.serverLevel(), target, cooldownManager);
                         } else {
                             serverPlayer.displayClientMessage(Component.literal("Spell is on cooldown!"), true);
                         }
+                    } else {
+                        serverPlayer.displayClientMessage(Component.literal("Aucune cible trouvée pour le sort."), true);
                     }
+                } else {
+                    serverPlayer.displayClientMessage(Component.literal("Le sort spécifié n'existe pas."), true);
+                }
+            }
+        }
+
+        // Lancer le sort lorsqu'on appuie sur la touche associée
+        if (CAST_SECOND_SPELL.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
+            ServerPlayer serverPlayer = PlayerHelper.getServerPlayerByName(minecraft.getSingleplayerServer(), minecraft.player.getName().getString());
+
+            if (serverPlayer != null) {
+                // Récupérer le sort à lancer (par exemple, "light_beam")
+                Spell spell = SpellManager.getSpell("frost_bolt");
+
+                if (spell != null) {
+                    // Utiliser le ray tracing pour obtenir la position et la cible
+                    HitResult hitResult = RayTracingHelper.getPlayerTarget(serverPlayer, serverPlayer.serverLevel(), spell.getRange());
+
+                    // Si une cible a été trouvée
+                    if (hitResult != null) {
+                        Vec3 target = hitResult.getLocation();
+
+                        // Vérifier si le sort peut être lancé
+                        if (spell.canCast(serverPlayer, cooldownManager)) {
+                            spell.cast(serverPlayer, serverPlayer.serverLevel(), target, cooldownManager);
+                        } else {
+                            serverPlayer.displayClientMessage(Component.literal("Spell is on cooldown!"), true);
+                        }
+                    } else {
+                        serverPlayer.displayClientMessage(Component.literal("Aucune cible trouvée pour le sort."), true);
+                    }
+                } else {
+                    serverPlayer.displayClientMessage(Component.literal("Le sort spécifié n'existe pas."), true);
+                }
+            }
+        }
+
+        // Lancer le sort lorsqu'on appuie sur la touche associée
+        if (CAST_THIRD_SPELL.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
+            ServerPlayer serverPlayer = PlayerHelper.getServerPlayerByName(minecraft.getSingleplayerServer(), minecraft.player.getName().getString());
+
+            if (serverPlayer != null) {
+                // Récupérer le sort à lancer (par exemple, "light_beam")
+                Spell spell = SpellManager.getSpell("explosion");
+
+                if (spell != null) {
+                    // Utiliser le ray tracing pour obtenir la position et la cible
+                    HitResult hitResult = RayTracingHelper.getPlayerTarget(serverPlayer, serverPlayer.serverLevel(), spell.getRange());
+
+                    // Si une cible a été trouvée
+                    if (hitResult != null) {
+                        Vec3 target = hitResult.getLocation();
+
+                        // Vérifier si le sort peut être lancé
+                        if (spell.canCast(serverPlayer, cooldownManager)) {
+                            spell.cast(serverPlayer, serverPlayer.serverLevel(), target, cooldownManager);
+                        } else {
+                            serverPlayer.displayClientMessage(Component.literal("Spell is on cooldown!"), true);
+                        }
+                    } else {
+                        serverPlayer.displayClientMessage(Component.literal("Aucune cible trouvée pour le sort."), true);
+                    }
+                } else {
+                    serverPlayer.displayClientMessage(Component.literal("Le sort spécifié n'existe pas."), true);
                 }
             }
         }
