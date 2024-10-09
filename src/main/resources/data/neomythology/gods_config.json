@@ -21,22 +21,15 @@
         "icon_hovered": "icon_thor_hovered.png",
         "description": "Thor is the god of thunder, lightning, storms, oak trees, strength, the protection of mankind, and also hallowing and fertility. His hammer, Mjölnir, is one of the most fearsome weapons, capable of leveling mountains.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 5
-          },
-          {
-            "name": "defense",
-            "value": 3
-          },
-          {
-            "name": "speed",
-            "value": 2
-          },
-          {
-            "name": "health",
-            "value": 4
-          }
+          { "name": "attack", "value": 5 },
+          { "name": "defense", "value": 3 },
+          { "name": "speed", "value": 2 },
+          { "name": "health", "value": 4 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -46,22 +39,15 @@
         "icon_hovered": "icon_odin_hovered.png",
         "description": "Odin is the god of wisdom, poetry, death, divination, and magic. He is the husband of the goddess Frigg, and the father of the gods Thor, Baldr, Höðr, Víðarr, and Váli.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 3
-          },
-          {
-            "name": "defense",
-            "value": 2
-          },
-          {
-            "name": "speed",
-            "value": 4
-          },
-          {
-            "name": "health",
-            "value": 5
-          }
+          { "name": "attack", "value": 3 },
+          { "name": "defense", "value": 2 },
+          { "name": "speed", "value": 4 },
+          { "name": "health", "value": 5 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -71,22 +57,15 @@
         "icon_hovered": "icon_zeus_hovered.png",
         "description": "Zeus is the god of the sky, lightning, thunder, law, order, and justice. He is the king of the gods and ruler of Mount Olympus. Zeus is the child of Cronus and Rhea, and the youngest of his siblings.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 4
-          },
-          {
-            "name": "defense",
-            "value": 3
-          },
-          {
-            "name": "speed",
-            "value": 3
-          },
-          {
-            "name": "health",
-            "value": 4
-          }
+          { "name": "attack", "value": 4 },
+          { "name": "defense", "value": 3 },
+          { "name": "speed", "value": 3 },
+          { "name": "health", "value": 4 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -96,22 +75,15 @@
         "icon_hovered": "icon_hades_hovered.png",
         "description": "Hades is the god of the dead and the king of the underworld. He is the eldest son of Cronus and Rhea and the elder brother of Zeus and Poseidon. Hades was also called Pluto, which the Romans translated as Dis Pater.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 4
-          },
-          {
-            "name": "defense",
-            "value": 4
-          },
-          {
-            "name": "speed",
-            "value": 2
-          },
-          {
-            "name": "health",
-            "value": 5
-          }
+          { "name": "attack", "value": 4 },
+          { "name": "defense", "value": 4 },
+          { "name": "speed", "value": 2 },
+          { "name": "health", "value": 5 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -121,22 +93,15 @@
         "icon_hovered": "icon_poseidon_hovered.png",
         "description": "Poseidon is the god of the sea, earthquakes, and horses. He is the brother of Zeus and Hades. Together, they divided the world between them. Poseidon was given the sea and all the waters, Zeus got the sky, and Hades the underworld.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 4
-          },
-          {
-            "name": "defense",
-            "value": 3
-          },
-          {
-            "name": "speed",
-            "value": 3
-          },
-          {
-            "name": "health",
-            "value": 4
-          }
+          { "name": "attack", "value": 4 },
+          { "name": "defense", "value": 3 },
+          { "name": "speed", "value": 3 },
+          { "name": "health", "value": 4 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -146,22 +111,15 @@
         "icon_hovered": "icon_ra_hovered.png",
         "description": "Ra is the god of the sun, order, kings, and the sky. He is the most important god in ancient Egyptian religion. Ra was the ruler of the heavens and the creator of everything that exists. He is usually depicted as a man with the head of a falcon and a sun disk above his head. Ra travels through the sky in his solar barque during the day and passes through the underworld at night, where he is reborn each morning.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 5
-          },
-          {
-            "name": "defense",
-            "value": 3
-          },
-          {
-            "name": "speed",
-            "value": 2
-          },
-          {
-            "name": "health",
-            "value": 4
-          }
+          { "name": "attack", "value": 5 },
+          { "name": "defense", "value": 3 },
+          { "name": "speed", "value": 2 },
+          { "name": "health", "value": 4 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -171,22 +129,15 @@
         "icon_hovered": "icon_kratos_hovered.png",
         "description": "Kratos is the god of strength and power. He is the son of Pallas and Styx. Kratos and his siblings Nike (victory), Bia (force), and Zelus (zeal) are all essentially personifications of a trait. Kratos is the personification of strength and power.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 5
-          },
-          {
-            "name": "defense",
-            "value": 4
-          },
-          {
-            "name": "speed",
-            "value": 3
-          },
-          {
-            "name": "health",
-            "value": 4
-          }
+          { "name": "attack", "value": 5 },
+          { "name": "defense", "value": 4 },
+          { "name": "speed", "value": 3 },
+          { "name": "health", "value": 4 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -196,22 +147,15 @@
         "icon_hovered": "icon_loki_hovered.png",
         "description": "Loki is the god of mischief, fire, and chaos. He is the son of the giants Fárbauti and Laufey. Loki is known as the trickster god and deity of mayhem and disorder. He is also the father of Hel, the goddess of the dead, Jörmungandr, the great serpent, and Fenrir, the wolf.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 3
-          },
-          {
-            "name": "defense",
-            "value": 2
-          },
-          {
-            "name": "speed",
-            "value": 5
-          },
-          {
-            "name": "health",
-            "value": 3
-          }
+          { "name": "attack", "value": 3 },
+          { "name": "defense", "value": 2 },
+          { "name": "speed", "value": 5 },
+          { "name": "health", "value": 3 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -221,22 +165,15 @@
         "icon_hovered": "icon_isis_hovered.png",
         "description": "Isis is the goddess of magic, motherhood, and fertility. She is the sister and wife of Osiris and the mother of Horus. Isis is the daughter of the earth god Geb and the sky goddess Nut. She is usually depicted as a woman wearing a throne-shaped crown or with a solar disk between a pair of cow horns. Isis was worshipped as the ideal mother and wife as well as the patroness of nature and magic. She was also known as the protector of the dead and goddess of children.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 3
-          },
-          {
-            "name": "defense",
-            "value": 3
-          },
-          {
-            "name": "speed",
-            "value": 3
-          },
-          {
-            "name": "health",
-            "value": 4
-          }
+          { "name": "attack", "value": 3 },
+          { "name": "defense", "value": 3 },
+          { "name": "speed", "value": 3 },
+          { "name": "health", "value": 4 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -246,22 +183,15 @@
         "icon_hovered": "icon_set_hovered.png",
         "description": "Set is the god of chaos, the desert, storms, disorder, violence, and foreigners in ancient Egyptian religion. Set is not a god to be taken lightly. He is a god of chaos, storms, and violence. He is the brother of Osiris, Isis, and Nephthys, and the father of Anubis. Set is often depicted as a man with the head of a mysterious animal known as the Set animal, which has a curved snout, long ears, and a forked tail.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 5
-          },
-          {
-            "name": "defense",
-            "value": 3
-          },
-          {
-            "name": "speed",
-            "value": 3
-          },
-          {
-            "name": "health",
-            "value": 4
-          }
+          { "name": "attack", "value": 5 },
+          { "name": "defense", "value": 3 },
+          { "name": "speed", "value": 3 },
+          { "name": "health", "value": 4 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -271,22 +201,15 @@
         "icon_hovered": "icon_kronos_hovered.png",
         "description": "Kronos is the leader of the Titans and the god of time. He is the father of Zeus, Hades, Poseidon, Hera, Demeter, and Hestia. Kronos overthrew his father Uranus and was later overthrown by his own son Zeus.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 5
-          },
-          {
-            "name": "defense",
-            "value": 2
-          },
-          {
-            "name": "speed",
-            "value": 2
-          },
-          {
-            "name": "health",
-            "value": 4
-          }
+          { "name": "attack", "value": 5 },
+          { "name": "defense", "value": 2 },
+          { "name": "speed", "value": 2 },
+          { "name": "health", "value": 4 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -296,22 +219,15 @@
         "icon_hovered": "icon_gaia_hovered.png",
         "description": "Gaia is the goddess of the earth and the mother of all life. She is the wife of Uranus and the mother of the Titans, the Giants, and the Hecatoncheires. Gaia is the personification of the earth and the mother of all life. She is the wife of Uranus and the mother of the Titans, the Giants, and the Hecatoncheires.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 5
-          },
-          {
-            "name": "defense",
-            "value": 2
-          },
-          {
-            "name": "speed",
-            "value": 4
-          },
-          {
-            "name": "health",
-            "value": 4
-          }
+          { "name": "attack", "value": 5 },
+          { "name": "defense", "value": 2 },
+          { "name": "speed", "value": 4 },
+          { "name": "health", "value": 4 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       },
       {
@@ -321,22 +237,15 @@
         "icon_hovered": "icon_uranus_hovered.png",
         "description": "Uranus is the god of the sky and the father of the Titans. He is the husband of Gaia and the father of the Titans, the Giants, and the Hecatoncheires. Uranus is the god of the sky and the father of the Titans. He is the husband of Gaia and the father of the Titans, the Giants, and the Hecatoncheires.",
         "stats": [
-          {
-            "name": "attack",
-            "value": 5
-          },
-          {
-          "name": "defense",
-          "value": 2
-          },
-          {
-          "name": "speed",
-          "value": 4
-          },
-          {
-          "name": "health",
-          "value": 4
-          }
+          { "name": "attack", "value": 5 },
+          { "name": "defense", "value": 2 },
+          { "name": "speed", "value": 4 },
+          { "name": "health", "value": 4 }
+        ],
+        "baseKit": [
+          {"item": "minecraft:diamond_sword", "count": 1},
+          {"item": "minecraft:shield", "count": 1},
+          {"item": "minecraft:cooked_beef", "count": 64}
         ]
       }
     ]

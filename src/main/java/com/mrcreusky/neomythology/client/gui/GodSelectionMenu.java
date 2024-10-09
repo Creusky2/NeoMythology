@@ -1,16 +1,18 @@
 package com.mrcreusky.neomythology.client.gui;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonParseException;
 import java.io.InputStreamReader;
-import java.io.InputStream;
-import java.lang.reflect.Type;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Set;
+
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -28,13 +30,20 @@ import net.minecraft.server.level.ServerPlayer;
 
 import com.mrcreusky.neomythology.NeoMythology;
 import com.mrcreusky.neomythology.client.PlayerHelper;
+import com.mrcreusky.neomythology.quests.DefaultQuests;
+import com.mrcreusky.neomythology.quests.PlayerQuestData;
+import com.mrcreusky.neomythology.server.ChatRenderer;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
+import java.util.HashMap;
 
 
 public class GodSelectionMenu extends Screen {
@@ -42,6 +51,7 @@ public class GodSelectionMenu extends Screen {
 
     private static final ResourceLocation BACKGROUND_TEXTURE = NeoMythology.getGuiTexture("gods_selection_menu.png");
 
+    private static Map<String, String> civilisationColors = new HashMap<>();
     public static List<God> godsList;  // Liste des objets God pour stocker les détails des dieux
     private List<CircularSpriteWidget> godsButtons;  // Liste des boutons des dieux
     // Déclaration de la liste des positions des labels
@@ -52,39 +62,137 @@ public class GodSelectionMenu extends Screen {
 
     public GodSelectionMenu() {
         super(Component.literal("NeoMythology"));
-        godsList  = loadGods();
+        loadGods();
         godsButtons = new ArrayList<>();  // Liste des boutons des dieux
         // Sélection par défaut
         selectedGod = godsList.isEmpty() ? null : godsList.get(0);
     }
 
-    public static void reloadGods() {
-        godsList = loadGods();
-    }
 
-    private static List<God> loadGods() {
-        try {
-            InputStream inputStream = GodSelectionMenu.class.getResourceAsStream("/data/neomythology/gods_config.json");
-            InputStreamReader reader = new InputStreamReader(inputStream);
-            JsonObject jsonObject = new Gson().fromJson(reader, JsonObject.class);
-            Type listType = new TypeToken<List<God>>() {}.getType();
-            return new Gson().fromJson(jsonObject.getAsJsonArray("gods"), listType);
-        } catch (Exception e) {
+    private static void loadCivilisations() {
+    Gson gson = new Gson();
+    
+    try (InputStreamReader reader = new InputStreamReader(ChatRenderer.class.getResourceAsStream("/data/neomythology/gods_config.json"))) {
+        civilisationColors = new HashMap<>();
+        JsonObject civilisationsJson = gson.fromJson(reader, JsonObject.class).getAsJsonObject("civilisations");
+        civilisationsJson.entrySet().forEach(entry -> {
+            String civilisation = entry.getKey();
+            String colorHex = entry.getValue().getAsJsonObject().get("color").getAsString();
+            civilisationColors.put(civilisation, colorHex);
+        });
+
+    } catch (IOException e) {
+        e.printStackTrace();  // Gérer les exceptions IO
+    } catch (JsonParseException e) {
+        e.printStackTrace();  // Gérer les exceptions de parsing JSON
+    }catch (Exception e) {
             e.printStackTrace();
-            return List.of(); // Retourne une liste vide en cas d'erreur
-        }
     }
+}
 
-    public final class God {
+
+
+    // private static void loadCivilisations() {
+    //     try (InputStreamReader reader = new InputStreamReader(ChatRenderer.class.getResourceAsStream("/data/neomythology/gods_config.json"))) {
+    //         JsonObject jsonObject = new Gson().fromJson(reader, JsonObject.class);
+    //         JsonObject civilisationsJson = jsonObject.getAsJsonObject("civilisations");
+    //         civilisationColors = new HashMap<>();
+    //         for (String civilisation : civilisationsJson.keySet()) {
+    //             JsonObject civData = civilisationsJson.getAsJsonObject(civilisation);
+    //             String colorHex = civData.get("color").getAsString();
+    //             civilisationColors.put(civilisation, colorHex);
+    //         }
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //         civilisationColors = Map.of(); // Retourne une map vide en cas d'erreur
+    //     }
+    // }
+
+    public static void loadGods() {
+        loadCivilisations();
+        try (InputStreamReader reader = new InputStreamReader(ChatRenderer.class.getResourceAsStream("/data/neomythology/gods_config.json"))) {
+            List<God> gods = new ArrayList<>();
+            new Gson().fromJson(
+                reader,
+                JsonObject.class
+            ).getAsJsonArray("gods").forEach(godElement ->{
+                JsonObject godObject = godElement.getAsJsonObject();
+    
+                String name = godObject.get("name").getAsString();
+                String icon = godObject.get("icon").getAsString();
+                String icon_hovered = godObject.get("icon_hovered").getAsString();
+                String description = godObject.get("description").getAsString();
+                String civilisation = godObject.get("civilisation").getAsString();
+    
+                // Charger les statistiques du dieu
+                List<com.mrcreusky.neomythology.client.gui.GodSelectionMenu.God.Stat> stats = new ArrayList<>();
+                JsonArray statsArray = godObject.getAsJsonArray("stats");
+                for (JsonElement statElement : statsArray) {
+                    JsonObject statObject = statElement.getAsJsonObject();
+                    String statName = statObject.get("name").getAsString();
+                    float statValue = statObject.get("value").getAsFloat();
+                    stats.add(new com.mrcreusky.neomythology.client.gui.GodSelectionMenu.God.Stat(statName, statValue));
+                }
+    
+                // Charger le kit de base du dieu
+                List<ItemStack> baseKit = God.loadBaseKitFromJson(godObject);
+    
+                // Ajouter le dieu à la liste
+                gods.add(new God(name, icon, icon_hovered, description, stats, civilisation, baseKit));
+            });
+
+            // Gson gson = new Gson();
+            // gson.fromJson(reader,JsonObject.class).getAsJsonArray("gods").forEach(godElement -> {
+            //     gods.add(gson.fromJson(godElement, God.class)); // Ajouter le dieu à la liste
+            // });
+            godsList = gods;
+    
+        }catch (IOException e) {
+            e.printStackTrace();  // Gérer les exceptions IO
+        }catch (JsonParseException e) {
+            e.printStackTrace();  // Gérer les exceptions de parsing JSON
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+    
+
+    public static class God {
         String name;
         String icon;
         String icon_hovered;
         String description;
         public List<Stat> stats;
         String civilisation;
+        public List<ItemStack> baseKit;
+
+        // Constructeur ou méthode d'initialisation depuis JSON
+        public God(String name, String icon, String icon_hovered, String description, List<Stat> stats, String civilisation, List<ItemStack> baseKit) {
+            this.name = name;
+            this.icon = icon;
+            this.icon_hovered = icon_hovered;
+            this.description = description;
+            this.stats = stats;
+            this.civilisation = civilisation;
+            this.baseKit = baseKit;  // Initialise le kit de base
+        }
+
+        // Méthode pour donner le kit au joueur
+        public void giveBaseKitToPlayer(ServerPlayer player) {
+            if (baseKit != null) {
+                for (ItemStack itemStack : baseKit) {
+                    player.getInventory().add(itemStack);
+                }
+            }
+        }
 
         public static God getFromPlayer(ServerPlayer player) {
             return getGodByName(player.getPersistentData().getCompound(ServerPlayer.PERSISTED_NBT_TAG).getString("SelectedGod"));
+        }
+
+        public static boolean hasSelectedGod(ServerPlayer player) {
+            return player.getPersistentData().getCompound(ServerPlayer.PERSISTED_NBT_TAG).contains("SelectedGod");
         }
 
         private static God getGodByName(String name) {
@@ -97,12 +205,14 @@ public class GodSelectionMenu extends Screen {
             return civilisation;
         }
 
-        private void applyGodStatsToPlayer(ServerPlayer player) {
-            if (stats != null) {   
-                removeGodStatsFromPlayer(player);
-                stats.forEach(stat -> {
-                    stat.AddPermanentModifierToPlayer(player);
-                });
+        public void applyGodStatsToPlayer(ServerPlayer player) {
+            if(this != null) {
+                if (stats != null) {   
+                    removeGodStatsFromPlayer(player);
+                    stats.forEach(stat -> {
+                        stat.AddPermanentModifierToPlayer(player);
+                    });
+                }
             }
         }
 
@@ -115,21 +225,20 @@ public class GodSelectionMenu extends Screen {
             });
         }
 
-        public void putInPlayer(ServerPlayer player) {
-			player.getPersistentData().putString("SelectedGod", name);
-		}
-    
-		public void putAndApplyGodStatsToPlayer(ServerPlayer player) {
-            
-            System.out.println("Selected god: " + this.name);
-            if (this != null) {
-                applyGodStatsToPlayer(player);
+        // Méthode statique pour charger le kit de base à partir du JSON
+        public static List<ItemStack> loadBaseKitFromJson(JsonObject jsonObject) {
+            List<ItemStack> baseKit = new ArrayList<>();
+            JsonArray jsonKitArray = jsonObject.getAsJsonArray("baseKit");
+            for (JsonElement kitElement : jsonKitArray) {
+                JsonObject kitObject = kitElement.getAsJsonObject();
+                String itemID = kitObject.get("item").getAsString();
+                int count = kitObject.get("count").getAsInt();
+                // Utilisation de BuiltInRegistries pour charger l'item à partir de son ID
+                Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemID));
+                baseKit.add(new ItemStack(item, count));  // Créer une pile d'items pour le kit
             }
-		}
-
-        public static boolean isAssignedToPlayer(ServerPlayer player) {
-			return player.getPersistentData().getCompound(ServerPlayer.PERSISTED_NBT_TAG).contains("SelectedGod");
-		}
+            return baseKit;
+        }
 
         public static class Stat {
             private String name;
@@ -207,16 +316,8 @@ public class GodSelectionMenu extends Screen {
                     ));
                 }
             }
-        }
-
-
-
-
-
-             
+        }        
     }
-
-
     
     private static class LabelPosition {
         String civilisation;
@@ -232,22 +333,48 @@ public class GodSelectionMenu extends Screen {
 
     @Override
     protected void init() {
+        @SuppressWarnings("resource")
+        LocalPlayer localPlayer = Minecraft.getInstance().player;
+        MinecraftServer server = Minecraft.getInstance().getSingleplayerServer();
+        ServerPlayer player = PlayerHelper.getServerPlayerByName(server, localPlayer.getName().getString());
+
+        if(!God.hasSelectedGod(player)){
+            DefaultQuests.addChooseDivinityQuestToPlayer(player);
+            initIfNoGodSelected(player);
+        }else {
+            selectedGod = God.getFromPlayer(player);
+            System.out.println("Selected god: " + selectedGod.name);
+            // this.onClose();
+        }
+    }
+
+    private void initIfNoGodSelected(ServerPlayer player) {
         RandomSource random = RandomSource.create();
-        int buttonWidth = 64;
-        int buttonHeight = 64;
-        int padding = 5;
-        int startY = this.height / 6;
+
+        // Adapter dynamiquement la largeur et la hauteur des boutons en fonction de la largeur de l'écran
+        int screenWidth = this.width;
+        int screenHeight = this.height;
+        int buttonWidth = Math.max(48, screenWidth / 15);  // Calculer la largeur du bouton en fonction de la largeur de l'écran
+        int buttonHeight = buttonWidth;  // Garder les boutons carrés
+        int padding = Math.max(5, screenWidth / 100);  // Ajuster le padding en fonction de la taille de l'écran
+
+        int startY = screenHeight / 6;
 
         super.init();
 
-        // Ajouter un bouton pour la sélection aléatoire en haut de l'interface
+        // Adapter la taille du bouton "Random" dynamiquement
+        int randomButtonWidth = Math.max(100, screenWidth / 10);  // Largeur adaptée à l'écran
+        int randomButtonHeight = 20;  // Garde une hauteur fixe
+        int randomButtonX = (screenWidth - randomButtonWidth) / 2;  // Centrer le bouton horizontalement
+        int randomButtonY = 20;  // Garder une marge fixe depuis le haut
+
         this.addRenderableWidget(new Button.Builder(Component.literal("Random"),
             button -> {
                 // Action lors de la sélection aléatoire
                 int randomIndex = Mth.randomBetweenInclusive(random, 0, godsList.size() - 1);
                 God randomGod = godsList.get(randomIndex);
                 setSelectedGod(randomGod);
-            }).bounds(this.width / 2 - 50, 20, 100, 20)  // Centrer le bouton "Random" en haut de l'écran
+            }).bounds(randomButtonX, randomButtonY, randomButtonWidth, randomButtonHeight)  // Positionnement dynamique
         .build());
 
         // Grouper les dieux par civilisation
@@ -265,25 +392,26 @@ public class GodSelectionMenu extends Screen {
             String civilisation = entry.getKey();
             List<God> gods = entry.getValue();
 
-            // Ajouter les boutons pour chaque dieu de cette civilisation
-            int godsPerRow = 3;
-            int numberOfRows = (int) Math.floor(gods.size() / godsPerRow);
-            System.out.println("Civilisation: " + civilisation + " - Gods: " + gods.size() + " - Rows: " + numberOfRows);
-            boolean isFirstRow = true;
+            // Sauvegarder la position du label de la civilisation
+            int labelX = (screenWidth - (3 * (buttonWidth + padding) - padding)) / 2 - buttonWidth - padding;
+            labelsPositions.add(new LabelPosition(civilisation, currentY, labelX));
 
-            for (int row = 0; row < numberOfRows; row++) {
-                int godsInThisRow = Math.min(godsPerRow, gods.size() - row * godsPerRow);
-                int currentX = (this.width - (godsInThisRow * (buttonWidth + padding) - padding)) / 2;
+            // Calculer dynamiquement le nombre de dieux par ligne en fonction de la largeur de l'écran
+            int godsPerRow = Math.min(3, Math.max(1, (screenWidth - padding) / (buttonWidth + padding)));
+            int totalGods = gods.size();
+            int rows = (int) Math.ceil((double) totalGods / godsPerRow);  // Calculer le nombre total de lignes
 
-                // Sauvegarder la position du label de la civilisation pour la première ligne
-                if (isFirstRow) {
-                    int labelX = (this.width - (godsPerRow * (buttonWidth + padding) - padding)) / 2 - buttonWidth - padding;
-                    labelsPositions.add(new LabelPosition(civilisation, currentY, labelX));
-                    isFirstRow = false;
-                }
+            for (int row = 0; row < rows; row++) {
+                // Calculer le nombre de dieux dans la ligne actuelle
+                int godsInThisRow = Math.min(godsPerRow, totalGods - row * godsPerRow);
+
+                // Centrer dynamiquement la ligne en fonction du nombre de dieux
+                int currentX = (screenWidth - (godsInThisRow * (buttonWidth + padding) - padding)) / 2;
 
                 for (int i = 0; i < godsInThisRow; i++) {
                     God god = gods.get(row * godsPerRow + i);
+
+                    // Créer un widget pour chaque dieu
                     CircularSpriteWidget godButton = new CircularSpriteWidget(currentX, currentY, buttonWidth, buttonHeight,
                             new WidgetSprites(
                                     NeoMythology.getGuiTexture(god.icon),
@@ -295,41 +423,48 @@ public class GodSelectionMenu extends Screen {
 
                     this.godsButtons.add(godButton);  // Ajouter le bouton à la liste
                     this.addRenderableWidget(godButton);
-                    currentX += buttonWidth + padding; // Avancer à la position du prochain bouton
+                    currentX += buttonWidth + padding;  // Avancer à la position du prochain bouton
                 }
-                currentY += buttonHeight + padding; // Ajouter un espace après les boutons de la ligne
+
+                currentY += buttonHeight + padding;  // Ajouter un espace après les boutons de la ligne
             }
-            currentY += 10; // Ajouter un espace supplémentaire après chaque groupe de dieux
+            currentY += 10;  // Ajouter un espace supplémentaire après chaque groupe de dieux
         }
 
-        // Ajouter un bouton "Save" en bas à droite du panneau droit
-        int saveButtonX = this.width - 120;  // Positionné 20 pixels depuis la droite
-        int saveButtonY = this.height - 40;  // Positionné 20 pixels depuis le bas
+        // Adapter dynamiquement la taille et la position du bouton "Save"
+        int saveButtonWidth = Math.max(100, screenWidth / 10);  // Largeur adaptée à l'écran
+        int saveButtonHeight = 20;  // Garde une hauteur fixe
+        int saveButtonX = screenWidth - saveButtonWidth - 20;  // 20px de marge depuis le bord droit
+        int saveButtonY = screenHeight - saveButtonHeight - 20;  // 20px de marge depuis le bas
+
         this.addRenderableWidget(new Button.Builder(Component.literal("Save"),
-                button -> {
-                    // Action quand le joueur clique sur "Save"
-                    @SuppressWarnings("resource")
-                    LocalPlayer localPlayer = Minecraft.getInstance().player;
-                    MinecraftServer server = Minecraft.getInstance().getSingleplayerServer();
-                    ServerPlayer player = PlayerHelper.getServerPlayerByName(server, localPlayer.getName().getString());
+            button -> {
+                // Action quand le joueur clique sur "Save"
 
-                    if (player != null) {
-                        // Sauvegarder les informations sur le dieu sélectionné
-                        CompoundTag tag = player.getPersistentData().getCompound(ServerPlayer.PERSISTED_NBT_TAG);
-                        tag.putString("SelectedGod", this.selectedGod.name);
-                        tag.putInt("level", 0);
-                        player.save(tag);
-                        player.getPersistentData().put(ServerPlayer.PERSISTED_NBT_TAG, tag);
+                if (player != null) {
+                    // Sauvegarder les informations sur le dieu sélectionné
+                    CompoundTag tag = player.getPersistentData().getCompound(ServerPlayer.PERSISTED_NBT_TAG);
+                    tag.putString("SelectedGod", this.selectedGod.name);
+                    tag.putInt("level", 0);
+                    player.getPersistentData().put(ServerPlayer.PERSISTED_NBT_TAG, tag);
 
-                        System.out.println("Persisted data: " + player.getPersistentData());
-                        if (selectedGod != null) {
-                            this.selectedGod.applyGodStatsToPlayer(player);
-                        }
+                    if (selectedGod != null) {
+                        this.selectedGod.giveBaseKitToPlayer(player);
+                        this.selectedGod.applyGodStatsToPlayer(player);
+                        PlayerQuestData.completeQuest(player, "Choose a Divinity");
+                        // Fermer le menu après avoir cliqué sur "Save"
+                        // Envoyer un message dans le chat
+                        String colorHex = civilisationColors.getOrDefault(selectedGod.getCivilisation(), "#FFFFFF"); // Blanc par défaut
+                        int color = Integer.parseInt(colorHex.substring(1), 16);
+                        player.sendSystemMessage(Component.literal("Vous vénérez maintenant " + this.selectedGod.getName() + " !").withColor(color));
+                        this.onClose();
                     }
-                }).bounds(saveButtonX, saveButtonY, 100, 20)  // Position du bouton "Save" en bas à droite
+                }
+            }).bounds(saveButtonX, saveButtonY, saveButtonWidth, saveButtonHeight)  // Positionnement dynamique
         .build());
-    }
 
+        setSelectedGod(this.selectedGod);
+    }
 
     private void setSelectedGod(God god) {
         // Mettre à jour le dieu sélectionné
@@ -348,62 +483,81 @@ public class GodSelectionMenu extends Screen {
 
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
 
-        drawRightPanel(guiGraphics);
+        @SuppressWarnings("resource")
+        LocalPlayer localPlayer = Minecraft.getInstance().player;
+        MinecraftServer server = Minecraft.getInstance().getSingleplayerServer();
+        ServerPlayer player = PlayerHelper.getServerPlayerByName(server, localPlayer.getName().getString());
 
-        // Afficher les noms des civilisations
-        drawCivilisationLabels(guiGraphics);
+        if(God.hasSelectedGod(player)) {
+            // Dessiner le nom du dieu sélectionné
+            drawSelectedGodInfo(guiGraphics, player);
+        } else {
+            drawRightPanelIfNoGodSelected(guiGraphics);
+            // Afficher les noms des civilisations
+            drawCivilisationLabelsIfNoGodSelected(guiGraphics);
+        }
     }
 
-    private void drawCivilisationLabels(GuiGraphics guiGraphics) {
+    private void drawCivilisationLabelsIfNoGodSelected(GuiGraphics guiGraphics) {
         for (LabelPosition label : labelsPositions) {
             guiGraphics.drawString(this.font, label.civilisation, label.x, label.y, 0xFFFFFF);
         }
     }
     
-    private void drawRightPanel(GuiGraphics guiGraphics) {
+    private void drawRightPanelIfNoGodSelected(GuiGraphics guiGraphics) {
         if (selectedGod != null) {
-            // Définir les coordonnées et dimensions du panneau droit
-            int paddingX = 130; // Augmenter la marge à gauche pour éviter le chevauchement avec les boutons
-            int infoX = this.width / 2 + paddingX;
+            // Adapter dynamiquement la position et la taille du right panel sans chevaucher les dieux
+            int buttonWidth = Math.max(48, this.width / 15);  // Calculer la largeur du bouton en fonction de la largeur de l'écran
+            int padding = Math.max(5, this.width / 100);  // Ajuster le padding en fonction de la taille de l'écran
+            int godsPerRow = Math.min(3, Math.max(1, (this.width - padding) / (buttonWidth + padding)));
+    
+            // Calculer la largeur occupée par les boutons de dieux (sur 3 dieux maximum par ligne)
+            int buttonsWidth = godsPerRow * (buttonWidth + padding) - padding;  // Largeur totale occupée par les boutons
+            int paddingLeft = (this.width - buttonsWidth) / 2;  // Centrer les boutons horizontalement
+    
+            // Calculer l'espace restant pour le panneau à droite des boutons
+            int panelX = paddingLeft + buttonsWidth + padding + 5;  // Position du panneau à droite des boutons
+            int availableWidth = this.width - panelX - padding;  // Largeur disponible pour le panneau
+    
+            // Limiter la largeur du panneau à l'espace disponible ou une taille minimale
+            int panelWidth = Math.min(Math.max(200, availableWidth), this.width / 3);  // Largeur minimale 200, maximale un tiers de l'écran
             int infoY = this.height / 6;
-            int panelWidth = (this.width - infoX) - 40; // Assurez-vous que le panneau droit reste dans l'espace disponible
-            int panelHeight = 100; // Hauteur initiale du panneau (ajusté plus tard en fonction du contenu)
-            int paddingY = 20; // Espace entre les éléments
-        
+            int panelHeight = 100;  // Hauteur initiale (sera ajustée)
+            int paddingY = 20;  // Espace entre les éléments
+    
             // Calculer la hauteur du contenu dynamique
             int descriptionHeight = calculateWrappedTextHeight(selectedGod.description, panelWidth);
             int civilisationHeight = calculateWrappedTextHeight("Civilisation: " + selectedGod.civilisation, panelWidth);
             panelHeight += descriptionHeight + civilisationHeight + paddingY * 2;
-        
-            // Dessiner le fond semi-transparent du panneau droit
-            int backgroundColor = 0x88000000; // Couleur noire avec une opacité de 0x88 (34% environ)
-            guiGraphics.fill(infoX - 10, infoY - 10, infoX + panelWidth + 10, infoY + panelHeight, backgroundColor);
-        
-            // Afficher le nom du dieu
-            guiGraphics.drawString(this.font, selectedGod.name, infoX, infoY, 0xFFFFFF);
-            infoY += paddingY;
-        
-            // Afficher la description avec un texte "wrap" et ajuster la position Y pour l'élément suivant
-            int descriptionHeightUsed = drawWrappedText(guiGraphics, selectedGod.description, infoX, infoY, panelWidth, 0xFFFFFF);
-            infoY += descriptionHeightUsed + paddingY;
-        
-            // Afficher la civilisation
-            drawWrappedText(guiGraphics, "Civilisation: " + selectedGod.civilisation, infoX, infoY, panelWidth, 0xFFFFFF);
+    
+            // Dessiner le panneau droit
+            guiGraphics.fill(panelX - 10, infoY - 10, panelX + panelWidth + 10, infoY + panelHeight, 0x88000000);
+    
+            // Afficher les informations du dieu
+            guiGraphics.drawString(this.font, selectedGod.name, panelX, infoY, 0xFFFFFF);
             infoY += paddingY;
     
-            // Afficher les statistiques du dieu sélectionné sous forme de barres de progression
+            // Afficher la description avec un texte wrap
+            int descriptionHeightUsed = drawWrappedText(guiGraphics, selectedGod.description, panelX, infoY, panelWidth, 0xFFFFFF);
+            infoY += descriptionHeightUsed + paddingY;
+    
+            // Afficher la civilisation
+            drawWrappedText(guiGraphics, "Civilisation: " + selectedGod.civilisation, panelX, infoY, panelWidth, 0xFFFFFF);
+            infoY += paddingY;
+    
+            // Afficher les statistiques sous forme de barres de progression
             if (selectedGod.stats != null) {
-                guiGraphics.drawString(this.font, "Stats:", infoX, infoY, 0xFFFFFF);
+                guiGraphics.drawString(this.font, "Stats:", panelX, infoY, 0xFFFFFF);
                 infoY += paddingY / 2;
     
-                // Dessiner une barre de progression pour chaque statistique
+                // Dessiner les barres de progression pour chaque statistique
                 for (God.Stat stat : selectedGod.stats) {
-                    drawMinecraftStyleBar(guiGraphics, infoX, infoY, stat.getName(), stat.getValue(), 7);
-                    infoY += 15; // Espacement entre les barres
+                    drawMinecraftStyleBar(guiGraphics, panelX, infoY, stat.getName(), stat.getValue(), 7);
+                    infoY += 15;  // Espacement entre les barres
                 }
             }
         }
-    }
+    }    
     
     private void drawMinecraftStyleBar(GuiGraphics guiGraphics, int x, int y, String statName, Float statValue, int maxStatValue) {
         int segmentWidth = 20; // Largeur d'un segment de la barre
@@ -411,9 +565,9 @@ public class GodSelectionMenu extends Screen {
         int padding = 2; // Espacement entre les segments
     
         // Afficher le nom de la statistique
-        guiGraphics.drawString(this.font, statName + ": ", x, y - 2, 0xFFFFFF);
+        guiGraphics.drawString(this.font, statName + " : ", x, y - 2, 0xFFFFFF);
     
-        int barX = x + this.font.width(statName + ": ") + 5; // Position de départ de la barre
+        int barX = x + this.font.width(statName + " : ") + 5; // Position de départ de la barre
     
         // Dessiner les segments de la barre
         for (int i = 0; i < maxStatValue; i++) {
@@ -486,6 +640,57 @@ public class GodSelectionMenu extends Screen {
         return lineCount * lineHeight;
     }
     
+    private void drawSelectedGodInfo(GuiGraphics guiGraphics, ServerPlayer player) {
+        if (selectedGod != null) {
+            // Définir les dimensions du panneau d'information
+            int panelWidth = this.width / 3;  // Largeur du panneau d'information
+            int infoX = (this.width / 2) + 50;  // Position X des informations
+            int infoY = this.height / 6;
+            int panelHeight = 200;  // Hauteur du panneau d'information, ajustable selon les besoins
+            int paddingY = 20;
+    
+            // Taille de l'icône (augmentée)
+            int iconSize = 128;  // Taille agrandie de l'icône du dieu
+    
+            // Calculer la position de l'icône pour qu'elle soit centrée verticalement par rapport au panel
+            int iconX = infoX - iconSize - 20;  // Positionner l'icône à gauche du panneau d'information
+            int panelCenterY = infoY + (panelHeight / 2);  // Calculer le centre du panneau
+            int iconY = panelCenterY - (iconSize / 2);  // Centrer l'icône verticalement par rapport au panneau
+    
+            // Dessiner l'icône du dieu
+            ResourceLocation godIcon = NeoMythology.getGuiTexture(selectedGod.icon);  // Charger l'icône du dieu
+            guiGraphics.blit(godIcon, iconX, iconY, 0, 0, iconSize, iconSize, iconSize, iconSize);
+    
+            // Afficher les informations du dieu à droite de l'icône
+            infoY = this.height / 6;  // Réinitialiser la position Y pour les informations
+            guiGraphics.drawString(this.font, "God : " + selectedGod.name, infoX, infoY, 0xFFFFFF);
+            infoY += paddingY;
+    
+            // Afficher la civilisation
+            guiGraphics.drawString(this.font, "Civilisation : " + selectedGod.civilisation, infoX, infoY, 0xFFFFFF);
+            infoY += paddingY;
+    
+            // Afficher la description
+            drawWrappedText(guiGraphics, selectedGod.description, infoX, infoY, panelWidth, 0xFFFFFF);
+            infoY += calculateWrappedTextHeight(selectedGod.description, panelWidth) + paddingY;
+    
+            // Afficher les statistiques du dieu
+            if (selectedGod.stats != null) {
+                guiGraphics.drawString(this.font, "God's statistics :", infoX, infoY, 0xFFFFFF);
+                infoY += paddingY / 2;
+    
+                for (God.Stat stat : selectedGod.stats) {
+                    drawMinecraftStyleBar(guiGraphics, infoX, infoY, stat.getName(), stat.getValue(), 7);
+                    infoY += 15;
+                }
+            }
+    
+            // Afficher les données du joueur (par exemple, le niveau)
+            int playerLevel = player.getPersistentData().getInt("level");
+            guiGraphics.drawString(this.font, "Level : " + playerLevel, infoX, infoY, 0xFFFFFF);
+        }
+    }    
+
     @Override
     public boolean isPauseScreen() {
         return false; // Indique si l'écran met le jeu en pause

@@ -1,4 +1,4 @@
-package com.mrcreusky.neomythology.Server;
+package com.mrcreusky.neomythology.server;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -24,29 +24,29 @@ public class ChatRenderer {
     private static Map<String, String> civilisationColors = new HashMap<>();
 
     // Charger les couleurs des civilisations depuis le fichier JSON
-    static {
-        loadCivilisations();
-    }
+    // static {
+    //     loadCivilisations();
+    // }
 
-    private static void loadCivilisations() {
-        try {
-            InputStream inputStream = ChatRenderer.class.getResourceAsStream("/data/neomythology/gods_config.json");
-            InputStreamReader reader = new InputStreamReader(inputStream);
-            JsonObject jsonObject = new Gson().fromJson(reader, JsonObject.class);
+    // private static void loadCivilisations() {
+    //     try {
+    //         InputStream inputStream = ChatRenderer.class.getResourceAsStream("/data/neomythology/gods_config.json");
+    //         InputStreamReader reader = new InputStreamReader(inputStream);
+    //         JsonObject jsonObject = new Gson().fromJson(reader, JsonObject.class);
 
-            JsonObject civilisationsJson = jsonObject.getAsJsonObject("civilisations");
-            civilisationColors = new HashMap<>();
+    //         JsonObject civilisationsJson = jsonObject.getAsJsonObject("civilisations");
+    //         civilisationColors = new HashMap<>();
 
-            for (String civilisation : civilisationsJson.keySet()) {
-                JsonObject civData = civilisationsJson.getAsJsonObject(civilisation);
-                String colorHex = civData.get("color").getAsString();
-                civilisationColors.put(civilisation, colorHex);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            civilisationColors = Map.of(); // Retourne une map vide en cas d'erreur
-        }
-    }
+    //         for (String civilisation : civilisationsJson.keySet()) {
+    //             JsonObject civData = civilisationsJson.getAsJsonObject(civilisation);
+    //             String colorHex = civData.get("color").getAsString();
+    //             civilisationColors.put(civilisation, colorHex);
+    //         }
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //         civilisationColors = Map.of(); // Retourne une map vide en cas d'erreur
+    //     }
+    // }
 
     @SubscribeEvent
     public static void onServerChat(ServerChatEvent event) {
@@ -57,9 +57,7 @@ public class ChatRenderer {
 
         if (player != null) {
             God selectedGod = God.getFromPlayer(player);
-            GodSelectionMenu.reloadGods();
-            // String selectedGodName = player.getPersistentData().getCompound("PlayerPersisted").getString("SelectedGod");
-            // God selectedGod = God.getGodByName(selectedGodName);
+            GodSelectionMenu.loadGods();
             if (selectedGod != null) {
                 String colorHex = civilisationColors.getOrDefault(selectedGod.getCivilisation(), "#FFFFFF"); // Blanc par défaut
                 int color = Integer.parseInt(colorHex.substring(1), 16);

@@ -21,8 +21,8 @@ public class PlayerRespawnHandler {
 
         if (event.isWasDeath()) {
             
-            if (God.isAssignedToPlayer(originalPlayer) || God.isAssignedToPlayer(newPlayer)) {
-                God.getFromPlayer(originalPlayer).putAndApplyGodStatsToPlayer(newPlayer);
+            if (God.hasSelectedGod(originalPlayer) || God.hasSelectedGod(newPlayer)) {
+                God.getFromPlayer(originalPlayer).applyGodStatsToPlayer(newPlayer);
             }
         }
     }
@@ -32,7 +32,7 @@ public class PlayerRespawnHandler {
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         ServerPlayer player = (ServerPlayer) event.getEntity();
-        if (!God.isAssignedToPlayer(player)) {
+        if (!God.hasSelectedGod(player)) {
             System.out.println("Player logged in: " + player.getName().getString() + " - No god selected");
             // Exécuter sur le client (retarder un peu pour s'assurer que tout est chargé)
             Minecraft.getInstance().tell(() -> {
