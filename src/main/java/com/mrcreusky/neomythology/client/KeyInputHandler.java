@@ -13,6 +13,7 @@ import com.mrcreusky.neomythology.client.gui.QuestMenu;
 import com.mrcreusky.neomythology.powers.CooldownManager;
 import com.mrcreusky.neomythology.powers.Spell;
 import com.mrcreusky.neomythology.powers.SpellManager;
+import com.mrcreusky.neomythology.powers.Spell.TargetType;
 import com.mrcreusky.neomythology.utils.RayTracingHelper;
 
 import org.lwjgl.glfw.GLFW;
@@ -63,7 +64,6 @@ public class KeyInputHandler {
             "NeoMythology"
     );
 
-
     // Method for registering key bindings
     @SuppressWarnings("resource")
     public static void registerKeyBindings() {
@@ -105,85 +105,39 @@ public class KeyInputHandler {
             }
         }
 
-        // Lancer le sort lorsqu'on appuie sur la touche associée
+        // Lancer les sorts lorsqu'une touche est associée à un sort
         if (CAST_FIRST_SPELL.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
-            ServerPlayer serverPlayer = PlayerHelper.getServerPlayerByName(minecraft.getSingleplayerServer(), minecraft.player.getName().getString());
-
-            if (serverPlayer != null) {
-                // Récupérer le sort à lancer (par exemple, "light_beam")
-                Spell spell = SpellManager.getSpell("light_beam");
-
-                if (spell != null) {
-                    // Utiliser le ray tracing pour obtenir la position et la cible
-                    HitResult hitResult = RayTracingHelper.getPlayerTarget(serverPlayer, serverPlayer.serverLevel(), spell.getRange());
-
-                    // Si une cible a été trouvée
-                    if (hitResult != null) {
-                        Vec3 target = hitResult.getLocation();
-
-                        // Vérifier si le sort peut être lancé
-                        if (spell.canCast(serverPlayer, cooldownManager)) {
-                            spell.cast(serverPlayer, serverPlayer.serverLevel(), target, cooldownManager);
-                        } else {
-                            serverPlayer.displayClientMessage(Component.literal("Spell is on cooldown!"), true);
-                        }
-                    } else {
-                        serverPlayer.displayClientMessage(Component.literal("Aucune cible trouvée pour le sort."), true);
-                    }
-                } else {
-                    serverPlayer.displayClientMessage(Component.literal("Le sort spécifié n'existe pas."), true);
-                }
-            }
+            castSpell("resistance", minecraft);
         }
-
-        // Lancer le sort lorsqu'on appuie sur la touche associée
         if (CAST_SECOND_SPELL.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
-            ServerPlayer serverPlayer = PlayerHelper.getServerPlayerByName(minecraft.getSingleplayerServer(), minecraft.player.getName().getString());
-
-            if (serverPlayer != null) {
-                // Récupérer le sort à lancer (par exemple, "light_beam")
-                Spell spell = SpellManager.getSpell("frost_bolt");
-
-                if (spell != null) {
-                    // Utiliser le ray tracing pour obtenir la position et la cible
-                    HitResult hitResult = RayTracingHelper.getPlayerTarget(serverPlayer, serverPlayer.serverLevel(), spell.getRange());
-
-                    // Si une cible a été trouvée
-                    if (hitResult != null) {
-                        Vec3 target = hitResult.getLocation();
-
-                        // Vérifier si le sort peut être lancé
-                        if (spell.canCast(serverPlayer, cooldownManager)) {
-                            spell.cast(serverPlayer, serverPlayer.serverLevel(), target, cooldownManager);
-                        } else {
-                            serverPlayer.displayClientMessage(Component.literal("Spell is on cooldown!"), true);
-                        }
-                    } else {
-                        serverPlayer.displayClientMessage(Component.literal("Aucune cible trouvée pour le sort."), true);
-                    }
-                } else {
-                    serverPlayer.displayClientMessage(Component.literal("Le sort spécifié n'existe pas."), true);
-                }
-            }
+            castSpell("frost_bolt", minecraft);
         }
-
-        // Lancer le sort lorsqu'on appuie sur la touche associée
         if (CAST_THIRD_SPELL.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
-            ServerPlayer serverPlayer = PlayerHelper.getServerPlayerByName(minecraft.getSingleplayerServer(), minecraft.player.getName().getString());
+            castSpell("explosion", minecraft);
+        }
+    }
 
-            if (serverPlayer != null) {
-                // Récupérer le sort à lancer (par exemple, "light_beam")
-                Spell spell = SpellManager.getSpell("explosion");
+    private static void castSpell(String spellName, Minecraft minecraft) {
+        ServerPlayer serverPlayer = PlayerHelper.getServerPlayerByName(minecraft.getSingleplayerServer(), minecraft.player.getName().getString());
 
-                if (spell != null) {
-                    // Utiliser le ray tracing pour obtenir la position et la cible
+        if (serverPlayer != null) {
+            Spell spell = SpellManager.getSpell(spellName);
+
+            if (spell != null) {
+                // Vérifier le type de cible du sort
+                if (spell.getTargetType() == TargetType.SELF || spell.getTargetType() == TargetType.AREA) {
+                    // Les sorts SELF ou AREA n'ont pas besoin d'une cible spécifique
+                    Vec3 target = serverPlayer.position(); // Utiliser la position du joueur comme centre
+                    if (spell.canCast(serverPlayer, cooldownManager)) {
+                        spell.cast(serverPlayer, serverPlayer.serverLevel(), target, cooldownManager);
+                    } else {
+                        serverPlayer.displayClientMessage(Component.literal("Spell is on cooldown!"), true);
+                    }
+                } else {
+                    // Pour les autres types de cible, utiliser le ray tracing pour déterminer la cible
                     HitResult hitResult = RayTracingHelper.getPlayerTarget(serverPlayer, serverPlayer.serverLevel(), spell.getRange());
-
-                    // Si une cible a été trouvée
                     if (hitResult != null) {
                         Vec3 target = hitResult.getLocation();
-
-                        // Vérifier si le sort peut être lancé
                         if (spell.canCast(serverPlayer, cooldownManager)) {
                             spell.cast(serverPlayer, serverPlayer.serverLevel(), target, cooldownManager);
                         } else {
@@ -192,9 +146,9 @@ public class KeyInputHandler {
                     } else {
                         serverPlayer.displayClientMessage(Component.literal("Aucune cible trouvée pour le sort."), true);
                     }
-                } else {
-                    serverPlayer.displayClientMessage(Component.literal("Le sort spécifié n'existe pas."), true);
                 }
+            } else {
+                serverPlayer.displayClientMessage(Component.literal("Le sort spécifié n'existe pas."), true);
             }
         }
     }

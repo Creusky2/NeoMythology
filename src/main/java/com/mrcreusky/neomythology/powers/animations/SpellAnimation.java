@@ -1,40 +1,54 @@
 package com.mrcreusky.neomythology.powers.animations;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.resources.ResourceLocation;
 
 public class SpellAnimation {
     private final String animationType;
+    private final SoundEvent soundEvent; // Son associé à l'animation
+    private final float volume;
+    private final float pitch;
 
-    public SpellAnimation(String animationType) {
+    public SpellAnimation(String animationType, ResourceLocation soundResource, float volume, float pitch) {
         this.animationType = animationType;
+        // Utilisation de BuiltInRegistries pour obtenir le SoundEvent
+        this.soundEvent = BuiltInRegistries.SOUND_EVENT.getOptional(soundResource).orElse(null);
+        this.volume = volume;
+        this.pitch = pitch;
     }
 
     public String getAnimationType() {
         return animationType;
     }
 
-    // Méthode pour jouer l'animation
+    // Méthode pour jouer l'animation et le son associé
     public void play(ServerLevel world, ServerPlayer caster, LivingEntity target) {
+        // Jouer l'animation spécifique en fonction du type
         switch (animationType) {
             case "light_beam":
-                // Exemple d'animation de rayon lumineux
                 playLightBeamAnimation(world, caster, target);
                 break;
             case "explosion":
-                // Exemple d'animation d'explosion
                 world.sendParticles(ParticleTypes.EXPLOSION, target.getX(), target.getY(), target.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
                 break;
             case "frost":
-                // Exemple d'animation de givre
                 world.sendParticles(ParticleTypes.SNOWFLAKE, target.getX(), target.getY(), target.getZ(), 20, 1.0, 1.0, 1.0, 0.2);
                 break;
             default:
                 // Aucune animation ou animation inconnue
                 break;
+        }
+
+        // Jouer le son associé
+        if (soundEvent != null) {
+            world.playSound(null, target.getX(), target.getY(), target.getZ(), soundEvent, SoundSource.PLAYERS, volume, pitch);
         }
     }
 
