@@ -35,12 +35,12 @@ public class SpellManager {
         // Sort de soin
         List<SpellEffect> healingEffects = new ArrayList<>();
         healingEffects.add(new HealingEffect(10.0F, new SpellAnimation("heal", ResourceLocation.fromNamespaceAndPath("minecraft", "entity.player.levelup"), 1.0F, 1.0F)));
-        spells.put("heal", new Spell("Heal", 50, 0.0, healingEffects, SpellType.SUPPORT, TargetType.SELF));
+        spells.put("heal", new Spell("Heal", 1, 0.0, healingEffects, SpellType.SUPPORT, TargetType.SELF));
 
         // Sort de résistance
         List<SpellEffect> resistanceEffects = new ArrayList<>();
         resistanceEffects.add(new StatusEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 400, 1), new SpellAnimation("resistance", ResourceLocation.fromNamespaceAndPath("minecraft", "entity.iron_golem.repair"), 1.0F, 1.0F)));
-        spells.put("resistance", new Spell("Resistance", 100, 0.0, resistanceEffects, SpellType.SUPPORT, TargetType.SELF));
+        spells.put("resistance", new Spell("Resistance", 1, 0.0, resistanceEffects, SpellType.SUPPORT, TargetType.SELF));
 
         List<SpellEffect> aoeEffects = new ArrayList<>();
         aoeEffects.add(new DamageEffect(3.0F, new SpellAnimation("explosion", ResourceLocation.fromNamespaceAndPath("minecraft", "entity.generic.explode"), 1.0F, 1.0F)));
@@ -54,4 +54,5 @@ public class SpellManager {
     public static void registerSpell(Spell spell) {
         spells.put(spell.getName(), spell);
     }
+
 }

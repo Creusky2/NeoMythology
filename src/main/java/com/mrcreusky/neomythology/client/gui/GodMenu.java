@@ -30,6 +30,9 @@ import net.minecraft.server.level.ServerPlayer;
 
 import com.mrcreusky.neomythology.NeoMythology;
 import com.mrcreusky.neomythology.client.PlayerHelper;
+import com.mrcreusky.neomythology.powers.PlayerSpellData;
+import com.mrcreusky.neomythology.powers.Spell;
+import com.mrcreusky.neomythology.powers.SpellManager;
 import com.mrcreusky.neomythology.quests.DefaultQuests;
 import com.mrcreusky.neomythology.quests.PlayerQuestData;
 import com.mrcreusky.neomythology.server.ChatRenderer;
@@ -46,7 +49,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import java.util.HashMap;
 
 
-public class GodSelectionMenu extends Screen {
+public class GodMenu extends Screen {
     // private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final ResourceLocation BACKGROUND_TEXTURE = NeoMythology.getGuiTexture("gods_selection_menu.png");
@@ -60,7 +63,7 @@ public class GodSelectionMenu extends Screen {
     // Pour l'affichage des détails à droite
     private God selectedGod;  // Le dieu sélectionné
 
-    public GodSelectionMenu() {
+    public GodMenu() {
         super(Component.literal("NeoMythology"));
         loadGods();
         godsButtons = new ArrayList<>();  // Liste des boutons des dieux
@@ -68,45 +71,26 @@ public class GodSelectionMenu extends Screen {
         selectedGod = godsList.isEmpty() ? null : godsList.get(0);
     }
 
-
     private static void loadCivilisations() {
-    Gson gson = new Gson();
-    
-    try (InputStreamReader reader = new InputStreamReader(ChatRenderer.class.getResourceAsStream("/data/neomythology/gods_config.json"))) {
-        civilisationColors = new HashMap<>();
-        JsonObject civilisationsJson = gson.fromJson(reader, JsonObject.class).getAsJsonObject("civilisations");
-        civilisationsJson.entrySet().forEach(entry -> {
-            String civilisation = entry.getKey();
-            String colorHex = entry.getValue().getAsJsonObject().get("color").getAsString();
-            civilisationColors.put(civilisation, colorHex);
-        });
+        Gson gson = new Gson();
+        
+        try (InputStreamReader reader = new InputStreamReader(ChatRenderer.class.getResourceAsStream("/data/neomythology/gods_config.json"))) {
+            civilisationColors = new HashMap<>();
+            JsonObject civilisationsJson = gson.fromJson(reader, JsonObject.class).getAsJsonObject("civilisations");
+            civilisationsJson.entrySet().forEach(entry -> {
+                String civilisation = entry.getKey();
+                String colorHex = entry.getValue().getAsJsonObject().get("color").getAsString();
+                civilisationColors.put(civilisation, colorHex);
+            });
 
-    } catch (IOException e) {
-        e.printStackTrace();  // Gérer les exceptions IO
-    } catch (JsonParseException e) {
-        e.printStackTrace();  // Gérer les exceptions de parsing JSON
-    }catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();  // Gérer les exceptions IO
+        } catch (JsonParseException e) {
+            e.printStackTrace();  // Gérer les exceptions de parsing JSON
+        }catch (Exception e) {
+                e.printStackTrace();
+        }
     }
-}
-
-
-
-    // private static void loadCivilisations() {
-    //     try (InputStreamReader reader = new InputStreamReader(ChatRenderer.class.getResourceAsStream("/data/neomythology/gods_config.json"))) {
-    //         JsonObject jsonObject = new Gson().fromJson(reader, JsonObject.class);
-    //         JsonObject civilisationsJson = jsonObject.getAsJsonObject("civilisations");
-    //         civilisationColors = new HashMap<>();
-    //         for (String civilisation : civilisationsJson.keySet()) {
-    //             JsonObject civData = civilisationsJson.getAsJsonObject(civilisation);
-    //             String colorHex = civData.get("color").getAsString();
-    //             civilisationColors.put(civilisation, colorHex);
-    //         }
-    //     } catch (Exception e) {
-    //         e.printStackTrace();
-    //         civilisationColors = Map.of(); // Retourne une map vide en cas d'erreur
-    //     }
-    // }
 
     public static void loadGods() {
         loadCivilisations();
@@ -125,13 +109,13 @@ public class GodSelectionMenu extends Screen {
                 String civilisation = godObject.get("civilisation").getAsString();
     
                 // Charger les statistiques du dieu
-                List<com.mrcreusky.neomythology.client.gui.GodSelectionMenu.God.Stat> stats = new ArrayList<>();
+                List<com.mrcreusky.neomythology.client.gui.GodMenu.God.Stat> stats = new ArrayList<>();
                 JsonArray statsArray = godObject.getAsJsonArray("stats");
                 for (JsonElement statElement : statsArray) {
                     JsonObject statObject = statElement.getAsJsonObject();
                     String statName = statObject.get("name").getAsString();
                     float statValue = statObject.get("value").getAsFloat();
-                    stats.add(new com.mrcreusky.neomythology.client.gui.GodSelectionMenu.God.Stat(statName, statValue));
+                    stats.add(new com.mrcreusky.neomythology.client.gui.GodMenu.God.Stat(statName, statValue));
                 }
     
                 // Charger le kit de base du dieu
@@ -157,7 +141,6 @@ public class GodSelectionMenu extends Screen {
 
     }
     
-
     public static class God {
         String name;
         String icon;
@@ -457,6 +440,25 @@ public class GodSelectionMenu extends Screen {
                         String colorHex = civilisationColors.getOrDefault(selectedGod.getCivilisation(), "#FFFFFF"); // Blanc par défaut
                         int color = Integer.parseInt(colorHex.substring(1), 16);
                         player.sendSystemMessage(Component.literal("Vous vénérez maintenant " + this.selectedGod.getName() + " !").withColor(color));
+
+                        // Débloquer et équiper le sort "light_beam" dans le slot 1 (index 0)
+                        PlayerSpellData.unlockAndEquipSpell(player, "light_beam", 0);
+                        player.displayClientMessage(Component.literal("Le sort 'Light Beam' a été équipé dans le slot 1."), true);
+
+                        // Débloquer et équiper le sort "frost_bolt" dans le slot 2 (index 1)
+                        PlayerSpellData.unlockAndEquipSpell(player, "frost_bolt", 1);
+                        player.displayClientMessage(Component.literal("Le sort 'Frost Bolt' a été équipé dans le slot 2."), true);
+
+                        // Débloquer et équiper le sort "heal" dans le slot 3 (index 2)
+                        PlayerSpellData.unlockAndEquipSpell(player, "heal", 2);
+                        player.displayClientMessage(Component.literal("Le sort 'Heal' a été équipé dans le slot 3."), true);
+
+                        // Sauvegarder les données du joueur
+                        PlayerSpellData.saveSpellData(player, PlayerSpellData.getSpellData(player));
+
+                        // Afficher un message pour confirmer l'assignation des sorts
+                        player.displayClientMessage(Component.literal("Les sorts ont été assignés avec succès !"), true);
+
                         this.onClose();
                     }
                 }
@@ -642,54 +644,69 @@ public class GodSelectionMenu extends Screen {
     
     private void drawSelectedGodInfo(GuiGraphics guiGraphics, ServerPlayer player) {
         if (selectedGod != null) {
-            // Définir les dimensions du panneau d'information
-            int panelWidth = this.width / 3;  // Largeur du panneau d'information
-            int infoX = (this.width / 2) + 50;  // Position X des informations
+            int panelWidth = this.width / 3;
+            int infoX = (this.width / 2) + 50;
             int infoY = this.height / 6;
-            int panelHeight = 200;  // Hauteur du panneau d'information, ajustable selon les besoins
             int paddingY = 20;
-    
-            // Taille de l'icône (augmentée)
-            int iconSize = 128;  // Taille agrandie de l'icône du dieu
-    
-            // Calculer la position de l'icône pour qu'elle soit centrée verticalement par rapport au panel
-            int iconX = infoX - iconSize - 20;  // Positionner l'icône à gauche du panneau d'information
-            int panelCenterY = infoY + (panelHeight / 2);  // Calculer le centre du panneau
-            int iconY = panelCenterY - (iconSize / 2);  // Centrer l'icône verticalement par rapport au panneau
-    
-            // Dessiner l'icône du dieu
-            ResourceLocation godIcon = NeoMythology.getGuiTexture(selectedGod.icon);  // Charger l'icône du dieu
+
+            int iconSize = 128;
+            int iconX = infoX - iconSize - 20;
+            int panelCenterY = infoY + 100;
+            int iconY = panelCenterY - (iconSize / 2);
+
+            ResourceLocation godIcon = NeoMythology.getGuiTexture(selectedGod.icon);
             guiGraphics.blit(godIcon, iconX, iconY, 0, 0, iconSize, iconSize, iconSize, iconSize);
-    
-            // Afficher les informations du dieu à droite de l'icône
-            infoY = this.height / 6;  // Réinitialiser la position Y pour les informations
-            guiGraphics.drawString(this.font, "God : " + selectedGod.name, infoX, infoY, 0xFFFFFF);
+
+            infoY = this.height / 6;
+            guiGraphics.drawString(this.font, "God: " + selectedGod.name, infoX, infoY, 0xFFFFFF);
             infoY += paddingY;
-    
-            // Afficher la civilisation
-            guiGraphics.drawString(this.font, "Civilisation : " + selectedGod.civilisation, infoX, infoY, 0xFFFFFF);
+
+            guiGraphics.drawString(this.font, "Civilisation: " + selectedGod.civilisation, infoX, infoY, 0xFFFFFF);
             infoY += paddingY;
-    
-            // Afficher la description
+
             drawWrappedText(guiGraphics, selectedGod.description, infoX, infoY, panelWidth, 0xFFFFFF);
             infoY += calculateWrappedTextHeight(selectedGod.description, panelWidth) + paddingY;
-    
-            // Afficher les statistiques du dieu
+
             if (selectedGod.stats != null) {
-                guiGraphics.drawString(this.font, "God's statistics :", infoX, infoY, 0xFFFFFF);
+                guiGraphics.drawString(this.font, "God's statistics:", infoX, infoY, 0xFFFFFF);
                 infoY += paddingY / 2;
-    
                 for (God.Stat stat : selectedGod.stats) {
                     drawMinecraftStyleBar(guiGraphics, infoX, infoY, stat.getName(), stat.getValue(), 7);
                     infoY += 15;
                 }
             }
-    
-            // Afficher les données du joueur (par exemple, le niveau)
+
             int playerLevel = player.getPersistentData().getInt("level");
-            guiGraphics.drawString(this.font, "Level : " + playerLevel, infoX, infoY, 0xFFFFFF);
+            guiGraphics.drawString(this.font, "Level: " + playerLevel, infoX, infoY, 0xFFFFFF);
+            infoY += paddingY;
+
+            // Ajouter l'affichage des sorts
+            drawPlayerSpellsInfo(guiGraphics, player, infoX, infoY, panelWidth);
         }
-    }    
+    }
+    
+    private void drawPlayerSpellsInfo(GuiGraphics guiGraphics, ServerPlayer player, int infoX, int infoY, int panelWidth) {
+        PlayerSpellData spellData = PlayerSpellData.getSpellData(player);
+
+        guiGraphics.drawString(this.font, "Unlocked Spells:", infoX, infoY, 0xFFFFFF);
+        infoY += 15;
+        for (String spellName : spellData.getSpellsUnlocked()) {
+            Spell currentSpell = SpellManager.getSpell(spellName);
+            guiGraphics.drawString(this.font, "- " + currentSpell.getName(), infoX + 10, infoY, 0xAAAAAA);
+            infoY += 15;
+        }
+
+        infoY += 10;
+        guiGraphics.drawString(this.font, "Equipped Spells:", infoX, infoY, 0xFFFFFF);
+        infoY += 15;
+        for (int i = 0; i < 3; i++) {
+            String spellName = spellData.getEquippedSpell(i);
+            Spell currentSpell = SpellManager.getSpell(spellName);
+            String displayName = spellName.isEmpty() ? "Empty Slot" : currentSpell.getName();
+            guiGraphics.drawString(this.font, "Slot " + (i + 1) + ": " + displayName, infoX + 10, infoY, 0xAAAAAA);
+            infoY += 15;
+        }
+    }
 
     @Override
     public boolean isPauseScreen() {

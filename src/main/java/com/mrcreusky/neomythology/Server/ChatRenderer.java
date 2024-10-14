@@ -2,8 +2,8 @@ package com.mrcreusky.neomythology.server;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.mrcreusky.neomythology.client.gui.GodSelectionMenu;
-import com.mrcreusky.neomythology.client.gui.GodSelectionMenu.God;
+import com.mrcreusky.neomythology.client.gui.GodMenu;
+import com.mrcreusky.neomythology.client.gui.GodMenu.God;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.server.level.ServerPlayer;
@@ -57,7 +57,7 @@ public class ChatRenderer {
 
         if (player != null) {
             God selectedGod = God.getFromPlayer(player);
-            GodSelectionMenu.loadGods();
+            GodMenu.loadGods();
             if (selectedGod != null) {
                 String colorHex = civilisationColors.getOrDefault(selectedGod.getCivilisation(), "#FFFFFF"); // Blanc par défaut
                 int color = Integer.parseInt(colorHex.substring(1), 16);

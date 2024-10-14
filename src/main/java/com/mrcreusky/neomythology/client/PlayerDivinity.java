@@ -1,6 +1,6 @@
 package com.mrcreusky.neomythology.client;
 
-import com.mrcreusky.neomythology.client.gui.GodSelectionMenu.God;
+import com.mrcreusky.neomythology.client.gui.GodMenu.God;
 
 
 public class PlayerDivinity {

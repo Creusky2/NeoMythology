@@ -8,9 +8,10 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mrcreusky.neomythology.client.gui.GodSelectionMenu;
+import com.mrcreusky.neomythology.client.gui.GodMenu;
 import com.mrcreusky.neomythology.client.gui.QuestMenu;
 import com.mrcreusky.neomythology.powers.CooldownManager;
+import com.mrcreusky.neomythology.powers.PlayerSpellData;
 import com.mrcreusky.neomythology.powers.Spell;
 import com.mrcreusky.neomythology.powers.SpellManager;
 import com.mrcreusky.neomythology.powers.Spell.TargetType;
@@ -21,6 +22,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.api.distmarker.Dist;
+
+import java.util.List;
 
 @EventBusSubscriber(modid = "neomythology", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
 public class KeyInputHandler {
@@ -43,22 +46,23 @@ public class KeyInputHandler {
             "NeoMythology"
     );
 
-    public static final KeyMapping CAST_FIRST_SPELL = new KeyMapping(
-            "Cast First Spell",
+    // Key mappings for casting spells from slots 1, 2, and 3
+    public static final KeyMapping CAST_SPELL_SLOT_1 = new KeyMapping(
+            "Cast Spell Slot 1",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_N,
             "NeoMythology"
     );
 
-    public static final KeyMapping CAST_SECOND_SPELL = new KeyMapping(
-            "Cast Second Spell",
+    public static final KeyMapping CAST_SPELL_SLOT_2 = new KeyMapping(
+            "Cast Spell Slot 2",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_B,
             "NeoMythology"
     );
 
-    public static final KeyMapping CAST_THIRD_SPELL = new KeyMapping(
-            "Cast Third Spell",
+    public static final KeyMapping CAST_SPELL_SLOT_3 = new KeyMapping(
+            "Cast Spell Slot 3",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_V,
             "NeoMythology"
@@ -69,9 +73,9 @@ public class KeyInputHandler {
     public static void registerKeyBindings() {
         Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, OPEN_GOD_SELECTION_MENU);
         Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, OPEN_QUEST_MENU);
-        Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, CAST_FIRST_SPELL);
-        Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, CAST_SECOND_SPELL);
-        Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, CAST_THIRD_SPELL);
+        Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, CAST_SPELL_SLOT_1);
+        Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, CAST_SPELL_SLOT_2);
+        Minecraft.getInstance().options.keyMappings = appendKeyBinding(Minecraft.getInstance().options.keyMappings, CAST_SPELL_SLOT_3);
     }
 
     // Utility method to add key bindings ensuring a single unique value
@@ -94,7 +98,7 @@ public class KeyInputHandler {
         // Vérifie si la touche configurée est appuyée
         if (OPEN_GOD_SELECTION_MENU.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
             if (minecraft.screen == null) {
-                minecraft.setScreen(new GodSelectionMenu());
+                minecraft.setScreen(new GodMenu());
             }
         }
 
@@ -105,50 +109,57 @@ public class KeyInputHandler {
             }
         }
 
-        // Lancer les sorts lorsqu'une touche est associée à un sort
-        if (CAST_FIRST_SPELL.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
-            castSpell("resistance", minecraft);
+        // Lancer les sorts équipés
+        if (CAST_SPELL_SLOT_1.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
+            castEquippedSpell(0, minecraft); // Slot 1 correspond à l'index 0
         }
-        if (CAST_SECOND_SPELL.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
-            castSpell("frost_bolt", minecraft);
+        if (CAST_SPELL_SLOT_2.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
+            castEquippedSpell(1, minecraft); // Slot 2 correspond à l'index 1
         }
-        if (CAST_THIRD_SPELL.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
-            castSpell("explosion", minecraft);
+        if (CAST_SPELL_SLOT_3.isActiveAndMatches(InputConstants.getKey(event.getKey(), event.getScanCode()))) {
+            castEquippedSpell(2, minecraft); // Slot 3 correspond à l'index 2
         }
     }
 
-    private static void castSpell(String spellName, Minecraft minecraft) {
+    // Méthode pour lancer un sort à partir de l'un des slots équipés
+    private static void castEquippedSpell(int slotIndex, Minecraft minecraft) {
         ServerPlayer serverPlayer = PlayerHelper.getServerPlayerByName(minecraft.getSingleplayerServer(), minecraft.player.getName().getString());
 
         if (serverPlayer != null) {
-            Spell spell = SpellManager.getSpell(spellName);
+            PlayerSpellData spellData = PlayerSpellData.getSpellData(serverPlayer);
+            List<String> equippedSpells = spellData.getSpellsEquipped();
 
-            if (spell != null) {
-                // Vérifier le type de cible du sort
-                if (spell.getTargetType() == TargetType.SELF || spell.getTargetType() == TargetType.AREA) {
-                    // Les sorts SELF ou AREA n'ont pas besoin d'une cible spécifique
-                    Vec3 target = serverPlayer.position(); // Utiliser la position du joueur comme centre
-                    if (spell.canCast(serverPlayer, cooldownManager)) {
-                        spell.cast(serverPlayer, serverPlayer.serverLevel(), target, cooldownManager);
-                    } else {
-                        serverPlayer.displayClientMessage(Component.literal("Spell is on cooldown!"), true);
-                    }
-                } else {
-                    // Pour les autres types de cible, utiliser le ray tracing pour déterminer la cible
-                    HitResult hitResult = RayTracingHelper.getPlayerTarget(serverPlayer, serverPlayer.serverLevel(), spell.getRange());
-                    if (hitResult != null) {
-                        Vec3 target = hitResult.getLocation();
+            // Vérifier si le slot est valide
+            if (slotIndex < equippedSpells.size()) {
+                String spellName = equippedSpells.get(slotIndex);
+                Spell spell = SpellManager.getSpell(spellName);
+
+                if (spell != null) {
+                    if (spell.getTargetType() == TargetType.SELF || spell.getTargetType() == TargetType.AREA) {
+                        Vec3 target = serverPlayer.position();
                         if (spell.canCast(serverPlayer, cooldownManager)) {
                             spell.cast(serverPlayer, serverPlayer.serverLevel(), target, cooldownManager);
                         } else {
                             serverPlayer.displayClientMessage(Component.literal("Spell is on cooldown!"), true);
                         }
                     } else {
-                        serverPlayer.displayClientMessage(Component.literal("Aucune cible trouvée pour le sort."), true);
+                        HitResult hitResult = RayTracingHelper.getPlayerTarget(serverPlayer, serverPlayer.serverLevel(), spell.getRange());
+                        if (hitResult != null) {
+                            Vec3 target = hitResult.getLocation();
+                            if (spell.canCast(serverPlayer, cooldownManager)) {
+                                spell.cast(serverPlayer, serverPlayer.serverLevel(), target, cooldownManager);
+                            } else {
+                                serverPlayer.displayClientMessage(Component.literal("Spell is on cooldown!"), true);
+                            }
+                        } else {
+                            serverPlayer.displayClientMessage(Component.literal("Aucune cible trouvée pour le sort."), true);
+                        }
                     }
+                } else {
+                    serverPlayer.displayClientMessage(Component.literal("Le sort spécifié n'existe pas."), true);
                 }
             } else {
-                serverPlayer.displayClientMessage(Component.literal("Le sort spécifié n'existe pas."), true);
+                serverPlayer.displayClientMessage(Component.literal("Aucun sort équipé dans ce slot."), true);
             }
         }
     }

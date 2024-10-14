@@ -7,8 +7,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 import com.mrcreusky.neomythology.NeoMythology;
-import com.mrcreusky.neomythology.client.gui.GodSelectionMenu;
-import com.mrcreusky.neomythology.client.gui.GodSelectionMenu.God;
+import com.mrcreusky.neomythology.client.gui.GodMenu;
+import com.mrcreusky.neomythology.client.gui.GodMenu.God;
 
 @EventBusSubscriber(modid = NeoMythology.MODID)
 public class PlayerRespawnHandler {
@@ -37,7 +37,7 @@ public class PlayerRespawnHandler {
             // Exécuter sur le client (retarder un peu pour s'assurer que tout est chargé)
             Minecraft.getInstance().tell(() -> {
                 if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getUUID().equals(player.getUUID())) {
-                    Minecraft.getInstance().setScreen(new GodSelectionMenu());
+                    Minecraft.getInstance().setScreen(new GodMenu());
                 }
             });
         }
